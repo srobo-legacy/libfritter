@@ -63,7 +63,7 @@ class KeyedSqliteThing(object):
         statement = 'SELECT ' + ', '.join(props) + self._from_table_where_id()
         row = self._fetchone(statement, (self._id,))
         if not row is None:
-            for i in xrange(len(props)):
+            for i in range(len(props)):
                 if row[i] is not None:
                     self._props[props[i]] = row[i]
             self._in_db = True
@@ -73,7 +73,7 @@ class KeyedSqliteThing(object):
         return self._db_required_props + self._db_optional_props
 
     def _missing_props(self):
-        return [name for name in self._db_required_props if not self._props.has_key(name)]
+        return [name for name in self._db_required_props if name not in self._props]
 
     @property
     def id(self):
