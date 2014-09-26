@@ -8,17 +8,18 @@ import os
 from config import config
 import sqlitewrapper
 
-def send_email(toaddr, subject, msg):
+CONFIG_ROOT = 'mailer'
 
-    fromaddr = config.get('mailer', 'fromaddr')
+def send_email(toaddr, subject, msg):
+    fromaddr = config.get(CONFIG_ROOT, 'fromaddr')
     msg = MIMEText(msg)
     msg["From"] = fromaddr
     msg["To"] = toaddr
     msg["Subject"] = subject
 
-    server = smtplib.SMTP_SSL(config.get('mailer', 'smtpserver'), timeout = 5)
-    smtp_user = config.get('mailer', 'username')
-    smtp_pass = config.get('mailer', 'password')
+    server = smtplib.SMTP_SSL(config.get(CONFIG_ROOT, 'smtpserver'), timeout = 5)
+    smtp_user = config.get(CONFIG_ROOT, 'username')
+    smtp_pass = config.get(CONFIG_ROOT, 'password')
     server.login(smtp_user, smtp_pass)
 
     r = server.sendmail(fromaddr, toaddr, str(msg))
@@ -78,5 +79,5 @@ def email_template(sql_connector, toaddr, template_name, template_vars):
     ps = store_template(sql_connector, toaddr, template_name, template_vars)
 
     # see if we're meant to send it right away
-    if not config.getboolean('mailer', 'delayed_send'):
+    if not config.getboolean(CONFIG_ROOT, 'delayed_send'):
         try_send(ps)
