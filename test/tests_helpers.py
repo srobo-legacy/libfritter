@@ -6,42 +6,16 @@ def root():
    root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
    return root
 
-sys.path.insert(0,os.path.join(root(), "nemesis/libnemesis"))
-sys.path.insert(0,os.path.join(root(), 'nemesis'))
+sys.path.insert(0,os.path.join(root(), 'libmailenator'))
 
-from sqlitewrapper import PendingEmail, PendingSend, sqlite_connect
+from sqlitewrapper import PendingSend, sqlite_connect
 from mailer import load_template
-
-from libnemesis import srusers
-
-def apache_mode():
-    return os.path.exists(".apachetest")
 
 def delete_db():
     conn = sqlite_connect()
     cur = conn.cursor()
-    cur.execute("DELETE FROM registrations")
-    cur.execute("DELETE FROM email_changes")
     cur.execute("DELETE FROM outbox")
     conn.commit()
-
-def get_registrations():
-    conn = sqlite_connect()
-    cur = conn.cursor()
-    cur.execute("SELECT * FROM registrations")
-    return list(cur)
-
-def remove_user(name):
-    """A setup helper"""
-    def helper():
-        u = srusers.user(name)
-        if u.in_db:
-            for gid in u.groups():
-                g = srusers.group(gid)
-                g.user_rm(u.username)
-                g.save()
-            u.delete()
-    return helper
 
 def last_email():
     conn = sqlite_connect()

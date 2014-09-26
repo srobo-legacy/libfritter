@@ -1,5 +1,1 @@
-venv
 *.pyc
-build
-nemesis/nemesis.wsgi
-/nemesis/local.ini

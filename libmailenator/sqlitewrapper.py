@@ -122,26 +122,6 @@ class KeyedSqliteThing(object):
                 self._id = lastid
             self._in_db = True
 
-class UsernameKeyedSqliteThing(KeyedSqliteThing):
-    @classmethod
-    def ListAll(cls, connector = None):
-        connector = connector or sqlite_connect
-        conn = connector()
-        cur  = conn.cursor()
-
-        rows = cur.execute('SELECT username FROM ' + cls._db_table)
-        items = [cls(row[0], connector) for row in rows]
-        return items
-
-    _id_key = 'username'
-
-    def __init__(self, username, connector, auto_props = []):
-        super(UsernameKeyedSqliteThing, self).__init__(username, connector, auto_props)
-
-    @property
-    def username(self):
-        return self._id
-
 class AgedKeyedSqliteThing(KeyedSqliteThing):
     def __init__(self, birth_time_prop, id, connector):
         super(AgedKeyedSqliteThing, self).__init__(id, connector, [birth_time_prop])
@@ -166,38 +146,6 @@ class AgedKeyedSqliteThing(KeyedSqliteThing):
             birth = self._get_time_property(self._birth_time_prop)
             age = datetime.utcnow() - birth
             return age
-
-class AgedUsernameKeyedSqliteThing(AgedKeyedSqliteThing, UsernameKeyedSqliteThing):
-    def __init__(self, birth_time_prop, username, connector):
-        super(AgedUsernameKeyedSqliteThing, self).__init__(birth_time_prop, username, connector)
-
-class PendingEmail(AgedUsernameKeyedSqliteThing):
-    _db_table = 'email_changes'
-    _db_required_props = ['new_email', 'verify_code']
-
-    def __init__(self, username, connector = None):
-        super(PendingEmail, self).__init__('request_time', username, connector)
-
-    def send_verification_email(self, first_name, verification_url):
-        email_vars = { 'name': first_name,
-            'activation_days': config.getint('nemesis', 'activation_days'),
-                        'url': verification_url }
-        mailer.email_template(self.new_email, 'change_email', email_vars)
-
-class PendingUser(AgedUsernameKeyedSqliteThing):
-    _db_table = 'registrations'
-    _db_required_props = ['teacher_username', 'college', 'team', 'email', 'verify_code']
-
-    def __init__(self, username, connector = None):
-        super(PendingUser, self).__init__('request_time', username, connector)
-
-    def send_welcome_email(self, first_name, activation_url):
-        email_vars = { 'name': first_name,
-            'activation_days': config.getint('nemesis', 'activation_days'),
-             'activation_url': activation_url
-                     }
-
-        mailer.email_template(self.email, 'new_user', email_vars)
 
 class PendingSend(AgedKeyedSqliteThing):
     @classmethod

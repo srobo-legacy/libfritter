@@ -2,7 +2,7 @@
 from datetime import datetime, timedelta
 from nose.tools import raises, with_setup
 
-import test_helpers
+import tests_helpers as test_helpers
 
 from sqlitewrapper import *
 

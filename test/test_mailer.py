@@ -2,8 +2,8 @@
 import os
 from unittest import TestCase
 
-import test_helpers
-from test_helpers import last_email
+import tests_helpers as test_helpers
+from tests_helpers import last_email
 
 import mailer
 from sqlitewrapper import PendingSend
