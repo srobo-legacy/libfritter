@@ -1,6 +1,7 @@
 
 import sys
 import os
+import sqlite3
 
 def root():
    root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -8,8 +9,20 @@ def root():
 
 sys.path.insert(0,os.path.join(root(), 'libmailenator'))
 
-from sqlitewrapper import PendingSend, sqlite_connect
+DB_PATH = os.path.join(os.path.dirname(__file__), 'test.db')
+
+from sqlitewrapper import PendingSend
 from mailer import load_template
+
+def ensure_db(db_path = DB_PATH):
+    from subprocess import check_call
+    make_db_script = os.path.join(root(), 'scripts', 'make_db.sh')
+    check_call([make_db_script, db_path])
+
+ensure_db()
+
+def sqlite_connect():
+    return sqlite3.connect(DB_PATH)
 
 def delete_db():
     conn = sqlite_connect()

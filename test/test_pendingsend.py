@@ -4,10 +4,10 @@ from nose.tools import raises, with_setup
 
 import tests_helpers as test_helpers
 
-from sqlitewrapper import *
+from sqlitewrapper import PendingSend
 
 def test_simple_properties():
-    ps = PendingSend('abc')
+    ps = PendingSend(test_helpers.sqlite_connect, 'abc')
     ps.toaddr = 'jim@srobo.org'
     ps.template_name = 'template-1'
     ps.last_error = 'bacon'
@@ -18,14 +18,14 @@ def test_simple_properties():
 
 def test_template_vars_property():
     print 'bacon'
-    ps = PendingSend('abc')
+    ps = PendingSend(test_helpers.sqlite_connect, 'abc')
     assert ps.template_vars is None
 
     ps.template_vars = {"foo": 'bar'}
     assert ps.template_vars == {'foo': 'bar'}
 
 def test_retried():
-    ps = PendingSend('abc')
+    ps = PendingSend(test_helpers.sqlite_connect, 'abc')
     ps.toaddr = 'jim@srobo.org'
     assert ps.retry_count == 0
 
@@ -36,7 +36,7 @@ def test_retried():
     assert ps.retry_count == 3
 
 def test_sent():
-    ps = PendingSend('abc')
+    ps = PendingSend(test_helpers.sqlite_connect, 'abc')
     ps.toaddr = 'jim@srobo.org'
     assert ps.sent_time is None
 
@@ -49,7 +49,7 @@ def test_sent():
 
 @with_setup(test_helpers.delete_db, test_helpers.delete_db)
 def test_creation():
-    ps = PendingSend()
+    ps = PendingSend(test_helpers.sqlite_connect)
     ps.toaddr = 'jim@srobo.org'
     ps.template_name = 'template-1'
     ps.template_vars = {"foo": 'bar'}
@@ -60,7 +60,7 @@ def test_creation():
     assert ps.in_db
     assert ps.id > 0
 
-    ps = PendingSend(ps.id)
+    ps = PendingSend(test_helpers.sqlite_connect, ps.id)
     assert ps.in_db
     assert ps.toaddr == 'jim@srobo.org'
     assert ps.template_name == 'template-1'
@@ -72,18 +72,18 @@ def test_creation():
 
 @with_setup(test_helpers.delete_db, test_helpers.delete_db)
 def test_unsent_none():
-    unsent = list(PendingSend.Unsent())
+    unsent = list(PendingSend.Unsent(test_helpers.sqlite_connect))
     assert len(unsent) == 0
 
 @with_setup(test_helpers.delete_db, test_helpers.delete_db)
 def test_unsent_one():
-    ps = PendingSend()
+    ps = PendingSend(test_helpers.sqlite_connect)
     ps.toaddr = 'bob@srobo.org'
     ps.template_name = 'template-1'
     ps.template_vars = {"foo": 'bar'}
     ps.save()
 
-    unsent = list(PendingSend.Unsent())
+    unsent = list(PendingSend.Unsent(test_helpers.sqlite_connect))
     assert len(unsent) == 1
     ps = unsent[0]
     toaddr = ps.toaddr
@@ -91,20 +91,20 @@ def test_unsent_one():
 
 @with_setup(test_helpers.delete_db, test_helpers.delete_db)
 def test_unsent_and_sent():
-    ps = PendingSend()
+    ps = PendingSend(test_helpers.sqlite_connect)
     ps.toaddr = 'alice@srobo.org'
     ps.template_name = 'template-1'
     ps.template_vars = {"foo": 'bar'}
     ps.mark_sent()
     ps.save()
 
-    ps = PendingSend()
+    ps = PendingSend(test_helpers.sqlite_connect)
     ps.toaddr = 'bob@srobo.org'
     ps.template_name = 'template-1'
     ps.template_vars = {"foo": 'bar'}
     ps.save()
 
-    unsent = list(PendingSend.Unsent())
+    unsent = list(PendingSend.Unsent(test_helpers.sqlite_connect))
     assert len(unsent) == 1
     ps = unsent[0]
     toaddr = ps.toaddr
@@ -112,20 +112,20 @@ def test_unsent_and_sent():
 
 @with_setup(test_helpers.delete_db, test_helpers.delete_db)
 def test_unsent_with_retries():
-    ps = PendingSend()
+    ps = PendingSend(test_helpers.sqlite_connect)
     ps.toaddr = 'alice@srobo.org'
     ps.template_name = 'template-1'
     ps.template_vars = {"foo": 'bar'}
     ps.retry_count = 5
     ps.save()
 
-    ps = PendingSend()
+    ps = PendingSend(test_helpers.sqlite_connect)
     ps.toaddr = 'bob@srobo.org'
     ps.template_name = 'template-1'
     ps.template_vars = {"foo": 'bar'}
     ps.save()
 
-    unsent = list(PendingSend.Unsent())
+    unsent = list(PendingSend.Unsent(test_helpers.sqlite_connect))
     assert len(unsent) == 1
     ps = unsent[0]
     toaddr = ps.toaddr

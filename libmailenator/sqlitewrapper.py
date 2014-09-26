@@ -1,15 +1,6 @@
 
 from datetime import datetime, timedelta
 import json
-import os
-import sqlite3
-
-from config import config
-import mailer
-
-PATH = os.path.dirname(os.path.abspath(__file__))
-def sqlite_connect():
-    return sqlite3.connect(PATH + "/db/nemesis.sqlite")
 
 class KeyedSqliteThing(object):
 
@@ -17,9 +8,9 @@ class KeyedSqliteThing(object):
     _db_required_props = []
     _db_optional_props = []
 
-    def __init__(self, id = None, connector = None, auto_props = []):
+    def __init__(self, connector, id = None, auto_props = []):
         self._id = id
-        self._connector = connector or sqlite_connect
+        self._connector = connector
         self._conn = None
         self._db_auto_props = auto_props
         self._props = {}
@@ -123,8 +114,8 @@ class KeyedSqliteThing(object):
             self._in_db = True
 
 class AgedKeyedSqliteThing(KeyedSqliteThing):
-    def __init__(self, birth_time_prop, id, connector):
-        super(AgedKeyedSqliteThing, self).__init__(id, connector, [birth_time_prop])
+    def __init__(self, connector, birth_time_prop, id):
+        super(AgedKeyedSqliteThing, self).__init__(connector, id, [birth_time_prop])
         self._birth_time_prop = birth_time_prop
 
     def _get_time_property(self, name):
@@ -149,8 +140,7 @@ class AgedKeyedSqliteThing(KeyedSqliteThing):
 
 class PendingSend(AgedKeyedSqliteThing):
     @classmethod
-    def Unsent(cls, max_retry = 5, max_results = 50, connector = None):
-        connector = connector or sqlite_connect
+    def Unsent(cls, connector, max_retry = 5, max_results = 50):
         conn = connector()
         cur  = conn.cursor()
         args = (max_retry, max_results)
@@ -165,7 +155,7 @@ class PendingSend(AgedKeyedSqliteThing):
     _db_required_props = ['toaddr', 'template_name', 'template_vars_json']
     _db_optional_props = ['last_error', 'retry_count', 'sent_time']
 
-    def __init__(self, id = None, connector = None):
+    def __init__(self, connector, id = None):
         super(PendingSend, self).__init__('request_time', id, connector)
 
     @property
