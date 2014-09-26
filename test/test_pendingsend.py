@@ -17,7 +17,6 @@ def test_simple_properties():
     assert ps.last_error == 'bacon'
 
 def test_template_vars_property():
-    print 'bacon'
     ps = PendingSend(test_helpers.sqlite_connect, 'abc')
     assert ps.template_vars is None
 
