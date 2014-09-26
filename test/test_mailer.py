@@ -34,7 +34,8 @@ class TestMailer(TestCase):
         exp_addr = 'test@example.com'
         exp_tpl  = 'tpl'
         exp_vars = {'foo':'bar'}
-        ps = mailer.store_template(exp_addr, exp_tpl, exp_vars)
+        ps = mailer.store_template(test_helpers.sqlite_connect, \
+                                   exp_addr, exp_tpl, exp_vars)
 
         assert ps.in_db
 
@@ -51,7 +52,7 @@ class TestMailer(TestCase):
         exp_tpl  = 'example'
         exp_vars = {'foo':'bar'}
 
-        ps = PendingSend()
+        ps = PendingSend(test_helpers.sqlite_connect)
         ps.toaddr = exp_addr
         ps.template_name = exp_tpl
         ps.template_vars = exp_vars
@@ -66,7 +67,7 @@ class TestMailer(TestCase):
         assert 'foo' not in self._msg
         assert 'bar' in self._msg
 
-        ps_stored = PendingSend(ps.id)
+        ps_stored = PendingSend(test_helpers.sqlite_connect, ps.id)
 
         sent = ps_stored.is_sent
         assert sent
@@ -76,7 +77,7 @@ class TestMailer(TestCase):
         exp_tpl  = 'example'
         exp_vars = {'foo':'bar'}
 
-        ps = PendingSend()
+        ps = PendingSend(test_helpers.sqlite_connect)
         ps.toaddr = exp_addr
         ps.template_name = exp_tpl
         ps.template_vars = exp_vars
@@ -88,7 +89,7 @@ class TestMailer(TestCase):
         mailer.send_email = throws
         mailer.try_send(ps)
 
-        ps_stored = PendingSend(ps.id)
+        ps_stored = PendingSend(test_helpers.sqlite_connect, ps.id)
 
         sent = ps_stored.is_sent
         assert not sent

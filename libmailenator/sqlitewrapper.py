@@ -149,14 +149,14 @@ class PendingSend(AgedKeyedSqliteThing):
         rows = cur.fetchall()
         for row in rows:
             id = row[0]
-            yield PendingSend(id, connector)
+            yield PendingSend(connector, id)
 
     _db_table = 'outbox'
     _db_required_props = ['toaddr', 'template_name', 'template_vars_json']
     _db_optional_props = ['last_error', 'retry_count', 'sent_time']
 
     def __init__(self, connector, id = None):
-        super(PendingSend, self).__init__('request_time', id, connector)
+        super(PendingSend, self).__init__(connector, 'request_time', id)
 
     @property
     def retry_count(self):

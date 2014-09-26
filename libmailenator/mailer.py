@@ -52,9 +52,9 @@ def send_email_template(toaddr, template_name, template_vars):
 
     return send_email(toaddr, subject, msg)
 
-def store_template(toaddr, template_name, template_vars):
+def store_template(sql_connector, toaddr, template_name, template_vars):
     logging.debug("storing pending email: '{0}' to '{1}'.".format(template_name, toaddr))
-    ps = sqlitewrapper.PendingSend()
+    ps = sqlitewrapper.PendingSend(sql_connector)
     ps.toaddr = toaddr
     ps.template_name = template_name
     ps.template_vars = template_vars
@@ -73,9 +73,9 @@ def try_send(ps):
     finally:
         ps.save()
 
-def email_template(toaddr, template_name, template_vars):
+def email_template(sql_connector, toaddr, template_name, template_vars):
     # always store the email
-    ps = store_template(toaddr, template_name, template_vars)
+    ps = store_template(sql_connector, toaddr, template_name, template_vars)
 
     # see if we're meant to send it right away
     if not config.getboolean('mailer', 'delayed_send'):

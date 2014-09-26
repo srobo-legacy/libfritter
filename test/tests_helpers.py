@@ -36,7 +36,7 @@ def last_email():
     cur.execute("SELECT id FROM outbox")
     row = cur.fetchone()
     assert row is not None, "Failed to get last email from SQLite."
-    return PendingSend(row[0])
+    return PendingSend(sqlite_connect, row[0])
 
 def last_n_emails(num):
     conn = sqlite_connect()
@@ -46,7 +46,7 @@ def last_n_emails(num):
     assert len(rows) == num, "Failed to get last %d emails from SQLite." % (num,)
     mails = []
     for row in rows:
-        mails.append(PendingSend(row[0]))
+        mails.append(PendingSend(sqlite_connect, row[0]))
     return mails
 
 def assert_no_emails():
