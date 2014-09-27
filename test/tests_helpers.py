@@ -7,12 +7,10 @@ def root():
    root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
    return root
 
-sys.path.insert(0,os.path.join(root(), 'libmailenator'))
-
 DB_PATH = os.path.join(os.path.dirname(__file__), 'test.db')
 
-from sqlitewrapper import PendingSend
-from mailer import load_template
+from libmailenator.sqlitewrapper import PendingSend
+from libmailenator.mailer import Mailer
 
 def ensure_db(db_path = DB_PATH):
     from subprocess import check_call
@@ -56,16 +54,29 @@ def assert_no_emails():
     row = cur.fetchone()
     assert row is None, "Should not be any emails in SQLite."
 
+def get_mailer(sender = None):
+    class Config(object):
+        def get(self, outer, inner):
+            return root()
+    config = Config()
+    mailer = Mailer(config, sqlite_connect, sender)
+    return mailer
+
 def assert_load_template(name, vars_):
-    template(name + ".txt")
-    subject, msg = load_template(name, vars_)
+    file_path = assert_template_path(name)
+    mailer = get_mailer()
+    subject, msg = mailer.load_template(file_path, vars_)
     assert subject
     assert msg
     assert "{" not in msg
 
-def template(name):
-    file_path = os.path.join(root(), 'nemesis/templates', name)
+def assert_template_path(name):
+    file_path = os.path.join(root(), name + ".txt")
     assert os.path.exists(file_path), \
         "Cannot open a template {0} that doesn't exist.".format(name)
+    return file_path
+
+def template(name):
+    file_path = assert_template_path(name)
     with open(file_path, 'r') as f:
         return f.readlines()

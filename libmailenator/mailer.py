@@ -31,57 +31,66 @@ def send_email(toaddr, subject, msg):
 
     return len(r) > 0
 
-def template_path(template_name):
-    template_dir = config.get(CONFIG_ROOT, 'template_dir')
-    temp_path = os.path.join(template_dir, template_name + ".txt")
-    return temp_path
+class Mailer(object):
+    def __init__(self, config, sql_connector, sender = None):
+        self._config = config
+        self._sql_connector = sql_connector
+        self._sender = sender or send_email
 
-def load_template(template_name, template_vars):
-    temp_path = template_path(template_name)
+    def send_email(self, toaddr, subject, msg):
+        return self._sender(self._config, toaddr, subject, msg)
 
-    msg = open(temp_path, 'r').read()
+    def template_path(self, template_name):
+        template_dir = self._config.get(CONFIG_ROOT, 'template_dir')
+        temp_path = os.path.join(template_dir, template_name + ".txt")
+        return temp_path
 
-    subject = msg.splitlines()[0]
-    assert subject[:8] == "Subject:"
-    subject = subject[8:].strip()
+    def load_template(self, template_name, template_vars):
+        temp_path = self.template_path(template_name)
 
-    msg = "\n".join(msg.splitlines()[1:])
-    msg = msg.format(**template_vars)
+        msg = open(temp_path, 'r').read()
 
-    return subject, msg
+        subject = msg.splitlines()[0]
+        assert subject[:8] == "Subject:"
+        subject = subject[8:].strip()
 
-def send_email_template(toaddr, template_name, template_vars):
-    logging.info("about to send '{0}' to '{1}'.".format(template_name, toaddr))
+        msg = "\n".join(msg.splitlines()[1:])
+        msg = msg.format(**template_vars)
 
-    subject, msg = load_template(template_name, template_vars)
+        return subject, msg
 
-    return send_email(toaddr, subject, msg)
+    def send_email_template(self, toaddr, template_name, template_vars):
+        logging.info("about to send '{0}' to '{1}'.".format(template_name, toaddr))
 
-def store_template(sql_connector, toaddr, template_name, template_vars):
-    logging.debug("storing pending email: '{0}' to '{1}'.".format(template_name, toaddr))
-    ps = sqlitewrapper.PendingSend(sql_connector)
-    ps.toaddr = toaddr
-    ps.template_name = template_name
-    ps.template_vars = template_vars
-    ps.save()
-    return ps
+        subject, msg = self.load_template(template_name, template_vars)
 
-def try_send(ps):
-    try:
-        send_email_template(ps.toaddr, ps.template_name, ps.template_vars)
-        ps.mark_sent()
-        logging.info("sent '{0}' to '{1}'.".format(ps.template_name, ps.toaddr))
-    except:
-        ps.retried()
-        ps.last_error = traceback.format_exc()
-        logging.exception("while sending {0}.".format(ps))
-    finally:
+        return self.send_email(toaddr, subject, msg)
+
+    def store_template(self, toaddr, template_name, template_vars):
+        logging.debug("storing pending email: '{0}' to '{1}'.".format(template_name, toaddr))
+        ps = sqlitewrapper.PendingSend(self._sql_connector)
+        ps.toaddr = toaddr
+        ps.template_name = template_name
+        ps.template_vars = template_vars
         ps.save()
+        return ps
 
-def email_template(sql_connector, toaddr, template_name, template_vars):
-    # always store the email
-    ps = store_template(sql_connector, toaddr, template_name, template_vars)
+    def try_send(self, ps):
+        try:
+            self.send_email_template(ps.toaddr, ps.template_name, ps.template_vars)
+            ps.mark_sent()
+            logging.info("sent '{0}' to '{1}'.".format(ps.template_name, ps.toaddr))
+        except:
+            ps.retried()
+            ps.last_error = traceback.format_exc()
+            logging.exception("while sending {0}.".format(ps))
+        finally:
+            ps.save()
 
-    # see if we're meant to send it right away
-    if not config.getboolean(CONFIG_ROOT, 'delayed_send'):
-        try_send(ps)
+    def email_template(self, toaddr, template_name, template_vars):
+        # always store the email
+        ps = self.store_template(toaddr, template_name, template_vars)
+
+        # see if we're meant to send it right away
+        if not self._config.get(CONFIG_ROOT, 'delayed_send'):
+            self.try_send(ps)

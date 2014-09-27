@@ -5,27 +5,20 @@ from unittest import TestCase
 import tests_helpers as test_helpers
 from tests_helpers import last_email
 
-import mailer
-from sqlitewrapper import PendingSend
-
-# cache the original, since we'll be injecting a mock
-# not sure why I couldn't do this as a class thing, but this seems to work.
-orig_send_mail = mailer.send_email
+from libmailenator.mailer import Mailer
+from libmailenator.sqlitewrapper import PendingSend
 
 class TestMailer(TestCase):
-    @classmethod
-    def tearDownClass(cls):
-        mailer.send_email = orig_send_mail
 
     def setUp(self):
         test_helpers.delete_db()
-        self.fake_send_email(None, None, None)
-        mailer.send_email = self.fake_send_email
+        self.fake_send_email(None, None, None, None)
+        self.mailer = test_helpers.get_mailer(self.fake_send_email)
 
     def tearDown(self):
         test_helpers.delete_db()
 
-    def fake_send_email(self, to, subject, msg):
+    def fake_send_email(self, config, to, subject, msg):
         self._to = to
         self._subject = subject
         self._msg = msg
@@ -34,8 +27,7 @@ class TestMailer(TestCase):
         exp_addr = 'test@example.com'
         exp_tpl  = 'tpl'
         exp_vars = {'foo':'bar'}
-        ps = mailer.store_template(test_helpers.sqlite_connect, \
-                                   exp_addr, exp_tpl, exp_vars)
+        ps = self.mailer.store_template(exp_addr, exp_tpl, exp_vars)
 
         assert ps.in_db
 
@@ -49,7 +41,7 @@ class TestMailer(TestCase):
 
     def test_try_send_ok(self):
         exp_addr = 'test@example.com'
-        exp_tpl  = 'example'
+        exp_tpl  = 'example_template'
         exp_vars = {'foo':'bar'}
 
         ps = PendingSend(test_helpers.sqlite_connect)
@@ -57,9 +49,9 @@ class TestMailer(TestCase):
         ps.template_name = exp_tpl
         ps.template_vars = exp_vars
 
-        mailer.try_send(ps)
+        self.mailer.try_send(ps)
 
-        tpl_lines = test_helpers.template(exp_tpl + '.txt')
+        tpl_lines = test_helpers.template(exp_tpl)
         exp_subject = tpl_lines[0]
 
         assert exp_addr == self._to
@@ -74,7 +66,7 @@ class TestMailer(TestCase):
 
     def test_try_send_throws(self):
         exp_addr = 'test@example.com'
-        exp_tpl  = 'example'
+        exp_tpl  = 'example_template'
         exp_vars = {'foo':'bar'}
 
         ps = PendingSend(test_helpers.sqlite_connect)
@@ -86,8 +78,8 @@ class TestMailer(TestCase):
         def throws(to, subject, msg):
             raise Exception(exc_msg)
 
-        mailer.send_email = throws
-        mailer.try_send(ps)
+        self.mailer.send_email = throws
+        self.mailer.try_send(ps)
 
         ps_stored = PendingSend(test_helpers.sqlite_connect, ps.id)
 
