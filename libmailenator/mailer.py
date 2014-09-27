@@ -10,6 +10,20 @@ import sqlitewrapper
 CONFIG_ROOT = 'mailer'
 
 def send_email(config, toaddr, subject, msg):
+    """Sends an email.
+
+    Parameters
+    ----------
+    config : dict_like
+        Must have the following keys:
+        * `fromaddr` - the senders address
+        * `smtpserver` - the server to send the email via
+        * `username` - the username for the server
+        * `password` - the password for the server
+    toaddr : str
+    subject : str
+    msg : str
+    """
     fromaddr = config['fromaddr']
     msg = MIMEText(msg)
     msg["From"] = fromaddr
@@ -32,6 +46,20 @@ def send_email(config, toaddr, subject, msg):
 
 class Mailer(object):
     def __init__(self, config, sql_connector, sender = None):
+        """
+        Parameters
+        ----------
+        config : dict_like
+            Must have the keys as needed by the `sender`, plus:
+            * `template_dir`: str - path to the directory containing the templates
+            * `delayed_send`: bool - if `true` will cache the templated
+                                     email request and send it later, otherwise
+                                     will attempt to send the email immediately
+        sql_connector : callable
+            Returning a sqlite connection
+        sender : callable, optional
+            Used to actually send the email. Defaults to send_email.
+        """
         self._config = config
         self._sql_connector = sql_connector
         self._sender = sender or send_email
