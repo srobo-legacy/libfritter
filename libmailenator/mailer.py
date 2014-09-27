@@ -31,9 +31,13 @@ def send_email(toaddr, subject, msg):
 
     return len(r) > 0
 
+def template_path(template_name):
+    template_dir = config.get(CONFIG_ROOT, 'template_dir')
+    temp_path = os.path.join(template_dir, template_name + ".txt")
+    return temp_path
+
 def load_template(template_name, template_vars):
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    temp_path = os.path.join(script_dir, "templates", template_name + ".txt")
+    temp_path = template_path(template_name)
 
     msg = open(temp_path, 'r').read()
 
