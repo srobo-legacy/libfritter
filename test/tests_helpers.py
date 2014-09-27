@@ -3,11 +3,15 @@ import sys
 import os
 import sqlite3
 
-def root():
-   root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+def test_root():
+   root = os.path.dirname(os.path.abspath(__file__))
    return root
 
-DB_PATH = os.path.join(os.path.dirname(__file__), 'test.db')
+def root():
+   root = os.path.dirname(test_root())
+   return root
+
+DB_PATH = os.path.join(test_root(), 'test.db')
 
 from libfritter.sqlitewrapper import PendingSend
 from libfritter.mailer import Mailer
@@ -54,8 +58,11 @@ def assert_no_emails():
     row = cur.fetchone()
     assert row is None, "Should not be any emails in SQLite."
 
+def template_root():
+    return os.path.join(test_root(), 'templates')
+
 def get_mailer(sender = None):
-    config = {'template_dir': root()}
+    config = {'template_dir': template_root()}
     mailer = Mailer(config, sqlite_connect, sender)
     return mailer
 
@@ -68,7 +75,7 @@ def assert_load_template(name, vars_):
     assert "{" not in msg
 
 def assert_template_path(name):
-    file_path = os.path.join(root(), name + ".txt")
+    file_path = os.path.join(template_root(), name + ".txt")
     assert os.path.exists(file_path), \
         "Cannot open a template {0} that doesn't exist.".format(name)
     return file_path
