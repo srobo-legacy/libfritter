@@ -5,21 +5,20 @@ import smtplib
 import traceback
 import os
 
-from config import config
 import sqlitewrapper
 
 CONFIG_ROOT = 'mailer'
 
-def send_email(toaddr, subject, msg):
-    fromaddr = config.get(CONFIG_ROOT, 'fromaddr')
+def send_email(config, toaddr, subject, msg):
+    fromaddr = config['fromaddr']
     msg = MIMEText(msg)
     msg["From"] = fromaddr
     msg["To"] = toaddr
     msg["Subject"] = subject
 
-    server = smtplib.SMTP_SSL(config.get(CONFIG_ROOT, 'smtpserver'), timeout = 5)
-    smtp_user = config.get(CONFIG_ROOT, 'username')
-    smtp_pass = config.get(CONFIG_ROOT, 'password')
+    server = smtplib.SMTP_SSL(config['smtpserver'], timeout = 5)
+    smtp_user = config['username']
+    smtp_pass = config['password']
     server.login(smtp_user, smtp_pass)
 
     r = server.sendmail(fromaddr, toaddr, str(msg))
@@ -41,7 +40,7 @@ class Mailer(object):
         return self._sender(self._config, toaddr, subject, msg)
 
     def template_path(self, template_name):
-        template_dir = self._config.get(CONFIG_ROOT, 'template_dir')
+        template_dir = self._config['template_dir']
         temp_path = os.path.join(template_dir, template_name + ".txt")
         return temp_path
 
@@ -92,5 +91,5 @@ class Mailer(object):
         ps = self.store_template(toaddr, template_name, template_vars)
 
         # see if we're meant to send it right away
-        if not self._config.get(CONFIG_ROOT, 'delayed_send'):
+        if not self._config['delayed_send']:
             self.try_send(ps)

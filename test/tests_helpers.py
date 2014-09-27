@@ -55,10 +55,7 @@ def assert_no_emails():
     assert row is None, "Should not be any emails in SQLite."
 
 def get_mailer(sender = None):
-    class Config(object):
-        def get(self, outer, inner):
-            return root()
-    config = Config()
+    config = {'template_dir': root()}
     mailer = Mailer(config, sqlite_connect, sender)
     return mailer
 
