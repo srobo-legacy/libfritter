@@ -9,8 +9,8 @@ def root():
 
 DB_PATH = os.path.join(os.path.dirname(__file__), 'test.db')
 
-from libmailenator.sqlitewrapper import PendingSend
-from libmailenator.mailer import Mailer
+from libfritter.sqlitewrapper import PendingSend
+from libfritter.mailer import Mailer
 
 def ensure_db(db_path = DB_PATH):
     from subprocess import check_call
