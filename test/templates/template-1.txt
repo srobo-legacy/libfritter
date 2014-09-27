@@ -1,0 +1,5 @@
+Subject: Sam likes ponys ♘.
+
+This is the body of the email.
+It contains {placeholder}s.
+It contains unicode too: ៙.

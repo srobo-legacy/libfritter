@@ -1,0 +1,4 @@
+To: students
+Subject: Something's happening
+
+This template does not have a unicode BOM, and contains no unicode

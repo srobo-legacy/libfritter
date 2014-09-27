@@ -6,6 +6,7 @@ import traceback
 import os
 
 from . import sqlitewrapper
+from . import email_template
 
 CONFIG_ROOT = 'mailer'
 
@@ -75,14 +76,9 @@ class Mailer(object):
     def load_template(self, template_name, template_vars):
         temp_path = self.template_path(template_name)
 
-        msg = open(temp_path, 'r').read()
-
-        subject = msg.splitlines()[0]
-        assert subject[:8] == "Subject:"
-        subject = subject[8:].strip()
-
-        msg = "\n".join(msg.splitlines()[1:])
-        msg = msg.format(**template_vars)
+        et = email_template.EmailTemplate(temp_path)
+        subject = et.subject
+        msg = et.format(template_vars)
 
         return subject, msg
 
