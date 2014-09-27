@@ -1,0 +1,59 @@
+
+from __future__ import unicode_literals
+
+import string
+
+class PreviewFormatter(string.Formatter):
+    def __init__(self):
+        self.used_keys = set()
+
+    def get_value(self, key, args, kwargs):
+        self.used_keys.add(key)
+        return "$" + key.upper()
+
+class Previewer(object):
+    "A previewer for EmailTemplate instances"
+    def __init__(self, email_template):
+        self._et = email_template
+        self._body = None
+        self._required_keys = None
+
+    @property
+    def preview_data(self):
+        """
+        Returns the gathered data, as a dictionary of content ready to be output.
+        """
+        items = [
+            ('To', self._et.recipient),
+            ('Subject', self._et.subject),
+            ('Body', self.get_body()),
+            ('Placeholders', self.get_placeholders()),
+        ]
+        return items
+
+    def preview(self, writer):
+        """
+        Writes a text preview of the template into the given writer.
+        """
+        for name, value in self.preview_data:
+            value = "{}".format(value)
+            lines = "\n    ".join(l for l in value.splitlines())
+            writer.write("""# {0}
+
+    {1}
+
+""".format(name, lines))
+
+    def do_format(self):
+        if self._body is None:
+            formatter = PreviewFormatter()
+            self._body = formatter.format(self._et.raw_body)
+            self._required_keys = formatter.used_keys
+
+    def get_body(self):
+        self.do_format()
+        return self._body
+
+    def get_placeholders(self):
+        self.do_format()
+        return ', '.join(sorted(self._required_keys))
