@@ -47,6 +47,11 @@ class EmailTemplate(object):
                 self._load_lines(f.readlines())
 
     @property
+    def raw_body(self):
+        self._load()
+        return self._tpl_body
+
+    @property
     def recipient(self):
         self._load()
         return self._tpl_to
@@ -57,6 +62,5 @@ class EmailTemplate(object):
         return self._tpl_subj
 
     def format(self, args):
-        self._load()
-        msg = self._tpl_body.format(**args)
+        msg = self.raw_body.format(**args)
         return msg

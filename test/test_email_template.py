@@ -11,7 +11,7 @@ def load_template(name):
     et = EmailTemplate(path)
     return et
 
-def test_body():
+def test_formatted_body():
     et = load_template('template-1')
 
     replacement = 'bacon'
@@ -21,6 +21,14 @@ def test_body():
     assert "{" not in body
     assert placeholder not in body
     assert replacement in body
+
+def test_raw_body():
+    et = load_template('template-1')
+
+    placeholder = 'placeholder'
+    body = et.raw_body
+    assert "{" in body
+    assert placeholder in body
 
 def test_subject():
     def helper(name, expected):
