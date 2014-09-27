@@ -1,0 +1,27 @@
+Subject: A short email
+
+
+
+
+
+    TEST-TOP
+This template has a lot of empty lines at the top and bottom, as well as
+in the middle.
+
+
+
+
+Clearly, it's not a very useful email with this much space, but the gaps
+at the top and bottom just get in the way and should be removed.
+
+
+
+
+The makers present here are just so it's easy to test that the right lines
+have been removed.
+TEST-BOTTOM
+
+
+
+
+

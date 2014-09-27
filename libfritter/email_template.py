@@ -22,6 +22,7 @@ class EmailTemplate(object):
     def _load_lines(self, lines):
         subj_prefix = "Subject:"
         to_prefix = "To:"
+        newline = "\n"
 
         next_line = lines.pop(0)
         if not next_line.startswith(subj_prefix):
@@ -39,7 +40,8 @@ class EmailTemplate(object):
 
         self._tpl_subj = next_line[len(subj_prefix):].strip()
 
-        self._tpl_body = "\n".join(lines)
+        stripped_lines = [l.rstrip() for l in lines]
+        self._tpl_body = newline.join(stripped_lines).strip(newline)
 
     def _load(self):
         if self._tpl_subj is None:

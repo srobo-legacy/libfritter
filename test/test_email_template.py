@@ -65,3 +65,18 @@ def test_invalid():
     yield helper, "invalid-1"
     yield helper, "invalid-2"
     yield helper, "invalid-3"
+
+def test_strip_empty_start_end_lines():
+    et = load_template('template-3')
+
+    body = et.raw_body
+    lines = body.splitlines()
+
+    first = lines[0]
+    last = lines[-1]
+
+    assert '    TEST-TOP' == first, "Wrong first line"
+    assert 'TEST-BOTTOM' == last, "Wrong last line"
+
+    num_lines = len(lines)
+    assert num_lines == 16, "Should not have changed the middle lines"
