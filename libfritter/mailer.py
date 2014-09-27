@@ -5,7 +5,7 @@ import smtplib
 import traceback
 import os
 
-import sqlitewrapper
+from . import sqlitewrapper
 
 CONFIG_ROOT = 'mailer'
 
