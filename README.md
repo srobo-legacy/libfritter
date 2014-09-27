@@ -1,4 +1,4 @@
-# libmailenator
+# libfritter
 
 A collection of email sending related utilities in python.
 
