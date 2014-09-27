@@ -97,7 +97,7 @@ class KeyedSqliteThing(object):
             raise Exception( "Cannot save %s '%s' - missing settings: '%s'." % (type(self), self._id, missing_str) )
 
         props = self._props.keys()
-        values = self._props.values()
+        values = list(self._props.values())
         if self.in_db:
             prep_statement = "UPDATE " + self._db_table + " SET " + '=?, '.join(props) + "=? " + self._where_id()
             self._exec(prep_statement, values + [self._id])
