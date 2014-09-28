@@ -37,15 +37,17 @@ class Previewer(object):
             The name of the template to get the preview data for, will be
             passed to the factory callable the instance was created around.
         """
-        et = self._template_factory(template_name)
-        body, placeholders = self._get_body(et)
-        items = [
-            ('To', et.recipient),
-            ('Subject', et.subject),
-            ('Body', body),
-            ('Placeholders', placeholders),
-        ]
-        return items
+        try:
+            et = self._template_factory(template_name)
+            body, placeholders = self._get_body(et)
+            return [
+                ('To', et.recipient),
+                ('Subject', et.subject),
+                ('Body', body),
+                ('Placeholders', placeholders),
+            ]
+        except Exception as e:
+            return [('Error', e)]
 
     def preview(self, template_name):
         """

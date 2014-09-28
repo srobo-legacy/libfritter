@@ -79,6 +79,18 @@ def test_previewer_data_no_placeholders():
 
     assert expected == data, "Wrong placeholder data"
 
+def test_previewer_data_load_failed():
+    error = Exception("I'm a teapot")
+    def throws(*args):
+        raise error
+
+    previewer = Previewer(throws, None)
+    data = previewer.preview_data('fake')
+
+    expected = [('Error', error)]
+
+    assert expected == data, "Wrong placeholder data"
+
 def test_reuse():
     fake_template = FakeTemplate()
 
