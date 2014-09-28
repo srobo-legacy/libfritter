@@ -46,8 +46,32 @@ def send_email(config, toaddr, subject, msg):
 
     return len(r) > 0
 
+class FileTemplateFactory(object):
+    """A simple wrapper around ``FileTemaplateSource`` and ``EmailTemplate``
+    whose ``load`` method is suitable for passing to the ``Mailer`` class.
+    """
+    def __init__(self, root):
+        self._source = template_source.FileTemaplateSource(root)
+
+    def load(self, name):
+        """Method which actually loads the template given a name
+
+        Parameters
+        ----------
+        name : str
+            The name of the template to load.
+
+        Returns
+        -------
+        EmailTemplate
+            A constructed template instance.
+        """
+        raw_template = self._source.load(name)
+        et = email_template.EmailTemplate(raw_template)
+        return et
+
 class Mailer(object):
-    def __init__(self, config, sql_connector, sender = None):
+    def __init__(self, config, sql_connector, template_factory, sender = None):
         """
         Parameters
         ----------
@@ -59,21 +83,22 @@ class Mailer(object):
                                      will attempt to send the email immediately
         sql_connector : callable
             Returning a sqlite connection
+        template_factory : callable(name)
+            Will be passed the name of a template, should return an
+            `EmailTemplate` instance.
         sender : callable, optional
             Used to actually send the email. Defaults to `send_email`.
         """
         self._config = config
         self._sql_connector = sql_connector
+        self._template_factory = template_factory
         self._sender = sender or send_email
 
     def send_email(self, toaddr, subject, msg):
         return self._sender(self._config, toaddr, subject, msg)
 
     def load_template(self, template_name, template_vars):
-        source = template_source.FileTemaplateSource(self._config['template_dir'])
-        raw_template = source.load(template_name)
-
-        et = email_template.EmailTemplate(raw_template)
+        et = self._template_factory(template_name)
         subject = et.subject
         msg = et.format(template_vars)
 

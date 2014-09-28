@@ -14,7 +14,7 @@ def root():
 DB_PATH = os.path.join(test_root(), 'test.db')
 
 from libfritter.sqlitewrapper import PendingSend
-from libfritter.mailer import Mailer
+from libfritter.mailer import Mailer, FileTemplateFactory
 
 def ensure_db(db_path = DB_PATH):
     from subprocess import check_call
@@ -62,8 +62,8 @@ def template_root():
     return os.path.join(test_root(), 'templates')
 
 def get_mailer(sender = None):
-    config = {'template_dir': template_root()}
-    mailer = Mailer(config, sqlite_connect, sender)
+    f = FileTemplateFactory(template_root())
+    mailer = Mailer({}, sqlite_connect, f.load, sender)
     return mailer
 
 def assert_load_template(name, vars_):
