@@ -56,4 +56,6 @@ class Previewer(object):
 
     def get_placeholders(self):
         self.do_format()
-        return ', '.join(sorted(self._required_keys))
+        if self._required_keys:
+            return ', '.join(sorted(self._required_keys))
+        return None
