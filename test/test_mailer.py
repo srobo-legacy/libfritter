@@ -75,11 +75,11 @@ class TestMailer(TestCase):
         ps.template_vars = exp_vars
 
         exc_msg = "I am a teapot"
-        def throws(to, subject, msg):
+        def throws(cfg, to, subject, msg):
             raise Exception(exc_msg)
 
-        self.mailer.send_email = throws
-        self.mailer.try_send(ps)
+        mailer = test_helpers.get_mailer(throws)
+        mailer.try_send(ps)
 
         ps_stored = PendingSend(test_helpers.sqlite_connect, ps.id)
 
