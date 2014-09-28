@@ -16,4 +16,5 @@ def test_script():
         print(cpe.output)
         raise
 
-    assert 'error' not in preview.lower()
+    assert 'error' not in preview.lower(), "Should not have errored"
+    assert 'Body' in preview, "Should have output the body"
