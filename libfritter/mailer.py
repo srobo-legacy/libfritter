@@ -18,10 +18,10 @@ def send_email(config, toaddr, subject, msg):
     ----------
     config : dict_like
         Must have the following keys:
-        * `fromaddr` - the senders address
-        * `smtpserver` - the server to send the email via
-        * `username` - the username for the server
-        * `password` - the password for the server
+        * ``fromaddr`` - the senders address
+        * ``smtpserver`` - the server to send the email via
+        * ``username`` - the username for the server
+        * ``password`` - the password for the server
     toaddr : str
     subject : str
     msg : str
@@ -76,18 +76,18 @@ class Mailer(object):
         Parameters
         ----------
         config : dict_like
-            Must have the keys as needed by the `sender`, plus:
-            * `template_dir`: str - path to the directory containing the templates
-            * `delayed_send`: bool - if `true` will cache the templated
+            Must have the keys as needed by the ``sender``, plus:
+            * ``template_dir``: str - path to the directory containing the templates
+            * ``delayed_send``: bool - if ``true`` will cache the templated
                                      email request and send it later, otherwise
                                      will attempt to send the email immediately
         sql_connector : callable
             Returning a sqlite connection
         template_factory : callable(name)
             Will be passed the name of a template, should return an
-            `EmailTemplate` instance.
+            ``EmailTemplate`` instance.
         sender : callable, optional
-            Used to actually send the email. Defaults to `send_email`.
+            Used to actually send the email. Defaults to ``send_email``.
         """
         self._config = config
         self._sql_connector = sql_connector
