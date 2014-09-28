@@ -80,3 +80,19 @@ def test_strip_empty_start_end_lines():
 
     num_lines = len(lines)
     assert num_lines == 16, "Should not have changed the middle lines"
+
+def test_alternate_loader():
+    expected_body = 'body'
+
+    class DummyTemplate(EmailTemplate):
+        def load_lines(self, source):
+            return ["Subject: " + source, expected_body]
+
+    tpl_id = 'bacon'
+    tpl = DummyTemplate(tpl_id)
+
+    subject = tpl.subject
+    assert tpl_id == subject
+
+    body = tpl.raw_body
+    assert expected_body == body

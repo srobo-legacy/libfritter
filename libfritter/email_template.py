@@ -13,13 +13,23 @@ class InvalidTemplateException(Exception):
 
 class EmailTemplate(object):
     "A class which loads and prepares a template for sending"
-    def __init__(self, path):
-        self._path = path
+    def __init__(self, template_id):
+        """Create a new template around the given id.
+
+        Parameters
+        ----------
+        template_id : str
+            Will be passed to the `load_lines` method to load the raw
+            content of the template.
+            The default implementation expects this to be a path.
+        """
+
+        self._tpl_id = template_id
         self._tpl_to = None
         self._tpl_subj = None
         self._tpl_body = None
 
-    def _load_lines(self, lines):
+    def _process_lines(self, lines):
         subj_prefix = "Subject:"
         to_prefix = "To:"
         newline = "\n"
@@ -45,8 +55,25 @@ class EmailTemplate(object):
 
     def _load(self):
         if self._tpl_subj is None:
-            with open_(self._path, 'r', encoding='utf-8') as f:
-                self._load_lines(f.readlines())
+            self._process_lines(self.load_lines(self._tpl_id))
+
+    def load_lines(self, template_id):
+        """Load the template content.
+        The default implementation loads from a file on disk.
+
+        Parameters
+        ----------
+        template_id : str
+            The value given to the instance when created
+
+        Returns
+        -------
+        list
+            The lines which make up the template. It doesn't matter whether
+            they include the trailing newlines or not.
+        """
+        with open_(template_id, 'r', encoding='utf-8') as f:
+            return f.readlines()
 
     @property
     def raw_body(self):
