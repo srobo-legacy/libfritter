@@ -2,16 +2,16 @@
 
 from __future__ import unicode_literals
 
-from ..libfritter.email_template import EmailTemplate, InvalidTemplateException
-from ..libfritter.template_source import FileTemaplateSource
+from ..libfritter.email_template import InvalidTemplateException
+from ..libfritter.file_template_factory import FileTemplateFactory
 
 from .tests_helpers import assert_template_path, template_root
 
 def load_template(name):
     path = assert_template_path(name)
     root = template_root()
-    content = FileTemaplateSource(root).load(name)
-    et = EmailTemplate(content)
+    f = FileTemplateFactory(root)
+    et = f.load(name)
     return et
 
 def test_formatted_body():

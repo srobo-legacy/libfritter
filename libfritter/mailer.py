@@ -5,8 +5,6 @@ import smtplib
 import traceback
 
 from . import sqlitewrapper
-from . import email_template
-from . import template_source
 
 CONFIG_ROOT = 'mailer'
 
@@ -44,30 +42,6 @@ def send_email(config, toaddr, subject, msg):
         pass
 
     return len(r) > 0
-
-class FileTemplateFactory(object):
-    """A simple wrapper around ``FileTemaplateSource`` and ``EmailTemplate``
-    whose ``load`` method is suitable for passing to the ``Mailer`` class.
-    """
-    def __init__(self, root):
-        self._source = template_source.FileTemaplateSource(root)
-
-    def load(self, name):
-        """Method which actually loads the template given a name
-
-        Parameters
-        ----------
-        name : str
-            The name of the template to load.
-
-        Returns
-        -------
-        EmailTemplate
-            A constructed template instance.
-        """
-        raw_template = self._source.load(name)
-        et = email_template.EmailTemplate(raw_template)
-        return et
 
 class Mailer(object):
     def __init__(self, config, sql_connector, template_factory, sender = None):

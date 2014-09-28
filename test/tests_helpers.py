@@ -14,7 +14,8 @@ def root():
 DB_PATH = os.path.join(test_root(), 'test.db')
 
 from ..libfritter.sqlitewrapper import PendingSend
-from ..libfritter.mailer import Mailer, FileTemplateFactory
+from ..libfritter.file_template_factory import FileTemplateFactory
+from ..libfritter.mailer import Mailer
 
 def ensure_db(db_path = DB_PATH):
     from subprocess import check_call
