@@ -3,7 +3,6 @@ from email.mime.text import MIMEText
 import logging
 import smtplib
 import traceback
-import os
 
 from . import sqlitewrapper
 from . import email_template
