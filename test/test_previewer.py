@@ -31,10 +31,27 @@ class FakeTemplate(object):
             ('Placeholders', 'bar, foo'),
         ]
 
+class FakeLoader(object):
+    def __init__(self, tpl):
+        self.name = None
+        self._tpl = tpl
+    def load(self, name):
+        self.name = name
+        return self._tpl
+
+def get_previewer_data(fake_template):
+    expected_name = 'dummy'
+    loader = FakeLoader(fake_template)
+    previewer = Previewer(loader.load, None)
+    data = previewer.preview_data(expected_name)
+    name = loader.name
+    assert expected_name == name, "Passed the wrong name to the template factory."
+    return data
+
 def test_previewer_data():
     fake_template = FakeTemplate()
-    previewer = Previewer(fake_template)
-    data = previewer.preview_data
+
+    data = get_previewer_data(fake_template)
 
     expected = fake_template.default_expected()
 
@@ -43,8 +60,8 @@ def test_previewer_data():
 def test_previewer_data_no_to():
     fake_template = FakeTemplate()
     fake_template.recipient = None
-    previewer = Previewer(fake_template)
-    data = previewer.preview_data
+
+    data = get_previewer_data(fake_template)
 
     expected = fake_template.default_expected()
 
@@ -54,11 +71,28 @@ def test_previewer_data_no_placeholders():
     fake_template = FakeTemplate()
     fake_template.raw_body = "-body-"
 
-    previewer = Previewer(fake_template)
-    data = previewer.preview_data
+    data = get_previewer_data(fake_template)
 
     expected = fake_template.default_expected()
     expected[2] = ('Body', fake_template.raw_body)
     expected[3] = ('Placeholders', None)
 
     assert expected == data, "Wrong placeholder data"
+
+def test_reuse():
+    fake_template = FakeTemplate()
+
+    loader = FakeLoader(fake_template)
+    previewer = Previewer(loader.load, None)
+
+    data = previewer.preview_data('fake')
+    expected = fake_template.default_expected()
+
+    assert expected == data, "Wrong placeholder data (first time)"
+
+    fake_template.recipient = None
+
+    data = previewer.preview_data('fake')
+    expected = fake_template.default_expected()
+
+    assert expected == data, "Wrong placeholder data (after changing recipient)"

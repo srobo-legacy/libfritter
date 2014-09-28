@@ -9,9 +9,8 @@ from libfritter.email_template import EmailTemplate
 from libfritter.previewer import Previewer
 from libfritter.template_source import load_path
 
-content = load_path(sys.argv[1])
-et = EmailTemplate(content)
+def load(path):
+    return EmailTemplate(load_path(path))
 
-p = Previewer(et)
-
-p.preview(sys.stdout)
+p = Previewer(load, sys.stdout)
+p.preview(sys.argv[1])

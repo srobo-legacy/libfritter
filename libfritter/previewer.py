@@ -13,30 +13,51 @@ class PreviewFormatter(string.Formatter):
         return "$" + key.upper()
 
 class Previewer(object):
-    "A previewer for EmailTemplate instances"
-    def __init__(self, email_template):
-        self._et = email_template
-        self._body = None
-        self._required_keys = None
+    "A template previewer"
+    def __init__(self, template_factory, writer):
+        """
+        Parameters
+        ----------
+        template_factory : callable(name)
+            Will be passed the name of a template, should return an
+            ``EmailTemplate`` instance.
+        writer : file object
+            Used to output the preview of each item.
+        """
+        self._template_factory = template_factory
+        self._writer = writer
 
-    @property
-    def preview_data(self):
+    def preview_data(self, template_name):
         """
         Returns the gathered data, as a dictionary of content ready to be output.
+
+        Parameters
+        ----------
+        template_name : str
+            The name of the template to get the preview data for, will be
+            passed to the factory callable the instance was created around.
         """
+        et = self._template_factory(template_name)
+        body, placeholders = self._get_body(et)
         items = [
-            ('To', self._et.recipient),
-            ('Subject', self._et.subject),
-            ('Body', self.get_body()),
-            ('Placeholders', self.get_placeholders()),
+            ('To', et.recipient),
+            ('Subject', et.subject),
+            ('Body', body),
+            ('Placeholders', placeholders),
         ]
         return items
 
-    def preview(self, writer):
+    def preview(self, template_name):
         """
         Writes a text preview of the template into the given writer.
+
+        Parameters
+        ----------
+        template_name : str
+            The name of the template to get the preview data for, will be
+            passed to the factory callable the instance was created around.
         """
-        for name, value in self.preview_data:
+        for name, value in self.preview_data(template_name):
             value = "{}".format(value)
             lines = "\n    ".join(l for l in value.splitlines())
             content = """# {0}
@@ -47,20 +68,16 @@ class Previewer(object):
             if sys.version_info[0] < 3:
                 # Python 2 writers can't deal with unicode characters
                 content = content.encode('utf-8')
-            writer.write(content)
+            self._writer.write(content)
 
-    def do_format(self):
-        if self._body is None:
-            formatter = PreviewFormatter()
-            self._body = formatter.format(self._et.raw_body)
-            self._required_keys = formatter.used_keys
+    def _get_body(self, email_template):
+        formatter = PreviewFormatter()
+        body = formatter.format(email_template.raw_body)
+        required_keys = formatter.used_keys
 
-    def get_body(self):
-        self.do_format()
-        return self._body
+        if len(required_keys):
+            required_keys = ', '.join(sorted(required_keys))
+        else:
+            required_keys = None
 
-    def get_placeholders(self):
-        self.do_format()
-        if self._required_keys:
-            return ', '.join(sorted(self._required_keys))
-        return None
+        return body, required_keys
