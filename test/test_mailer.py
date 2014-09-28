@@ -2,11 +2,11 @@
 import os
 from unittest import TestCase
 
-import tests_helpers as test_helpers
-from tests_helpers import last_email
+from . import tests_helpers as test_helpers
+from .tests_helpers import last_email
 
-from libfritter.mailer import Mailer
-from libfritter.sqlitewrapper import PendingSend
+from ..libfritter.mailer import Mailer
+from ..libfritter.sqlitewrapper import PendingSend
 
 class TestMailer(TestCase):
 

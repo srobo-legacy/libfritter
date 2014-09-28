@@ -2,9 +2,9 @@
 from datetime import datetime, timedelta
 from nose.tools import raises, with_setup
 
-import tests_helpers as test_helpers
+from . import tests_helpers as test_helpers
 
-from libfritter.sqlitewrapper import PendingSend
+from ..libfritter.sqlitewrapper import PendingSend
 
 def test_simple_properties():
     ps = PendingSend(test_helpers.sqlite_connect, 'abc')

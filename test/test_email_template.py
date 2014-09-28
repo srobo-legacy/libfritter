@@ -2,10 +2,10 @@
 
 from __future__ import unicode_literals
 
-from libfritter.email_template import EmailTemplate, InvalidTemplateException
-from libfritter.template_source import FileTemaplateSource
+from ..libfritter.email_template import EmailTemplate, InvalidTemplateException
+from ..libfritter.template_source import FileTemaplateSource
 
-from tests_helpers import assert_template_path, template_root
+from .tests_helpers import assert_template_path, template_root
 
 def load_template(name):
     path = assert_template_path(name)

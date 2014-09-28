@@ -1,7 +1,7 @@
 
 from collections import namedtuple
 
-from libfritter.previewer import PreviewFormatter, Previewer
+from ..libfritter.previewer import PreviewFormatter, Previewer
 
 def test_prev_formatter():
     def helper(tpl, expected_str, expected_keys):
