@@ -7,6 +7,7 @@ import os
 
 from . import sqlitewrapper
 from . import email_template
+from . import template_source
 
 CONFIG_ROOT = 'mailer'
 
@@ -68,15 +69,11 @@ class Mailer(object):
     def send_email(self, toaddr, subject, msg):
         return self._sender(self._config, toaddr, subject, msg)
 
-    def template_path(self, template_name):
-        template_dir = self._config['template_dir']
-        temp_path = os.path.join(template_dir, template_name + ".txt")
-        return temp_path
-
     def load_template(self, template_name, template_vars):
-        temp_path = self.template_path(template_name)
+        source = template_source.FileTemaplateSource(self._config['template_dir'])
+        raw_template = source.load(template_name)
 
-        et = email_template.EmailTemplate(temp_path)
+        et = email_template.EmailTemplate(raw_template)
         subject = et.subject
         msg = et.format(template_vars)
 

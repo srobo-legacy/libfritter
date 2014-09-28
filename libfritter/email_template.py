@@ -2,29 +2,21 @@
 import os
 import sys
 
-if sys.version_info[0] < 3:
-    import codecs
-    open_ = codecs.open
-else:
-    open_ = open
-
 class InvalidTemplateException(Exception):
     pass
 
 class EmailTemplate(object):
     "A class which loads and prepares a template for sending"
-    def __init__(self, template_id):
+    def __init__(self, template_content):
         """Create a new template around the given id.
 
         Parameters
         ----------
-        template_id : str
-            Will be passed to the `load_lines` method to load the raw
-            content of the template.
-            The default implementation expects this to be a path.
+        template_content : str
+            The raw content of the template.
         """
 
-        self._tpl_id = template_id
+        self._content = template_content
         self._tpl_to = None
         self._tpl_subj = None
         self._tpl_body = None
@@ -55,25 +47,7 @@ class EmailTemplate(object):
 
     def _load(self):
         if self._tpl_subj is None:
-            self._process_lines(self.load_lines(self._tpl_id))
-
-    def load_lines(self, template_id):
-        """Load the template content.
-        The default implementation loads from a file on disk.
-
-        Parameters
-        ----------
-        template_id : str
-            The value given to the instance when created
-
-        Returns
-        -------
-        list
-            The lines which make up the template. It doesn't matter whether
-            they include the trailing newlines or not.
-        """
-        with open_(template_id, 'r', encoding='utf-8') as f:
-            return f.readlines()
+            self._process_lines(self._content.splitlines())
 
     @property
     def raw_body(self):

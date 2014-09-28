@@ -3,12 +3,15 @@
 from __future__ import unicode_literals
 
 from libfritter.email_template import EmailTemplate, InvalidTemplateException
+from libfritter.template_source import FileTemaplateSource
 
-from tests_helpers import assert_template_path
+from tests_helpers import assert_template_path, template_root
 
 def load_template(name):
     path = assert_template_path(name)
-    et = EmailTemplate(path)
+    root = template_root()
+    content = FileTemaplateSource(root).load(name)
+    et = EmailTemplate(content)
     return et
 
 def test_formatted_body():
@@ -80,19 +83,3 @@ def test_strip_empty_start_end_lines():
 
     num_lines = len(lines)
     assert num_lines == 16, "Should not have changed the middle lines"
-
-def test_alternate_loader():
-    expected_body = 'body'
-
-    class DummyTemplate(EmailTemplate):
-        def load_lines(self, source):
-            return ["Subject: " + source, expected_body]
-
-    tpl_id = 'bacon'
-    tpl = DummyTemplate(tpl_id)
-
-    subject = tpl.subject
-    assert tpl_id == subject
-
-    body = tpl.raw_body
-    assert expected_body == body
