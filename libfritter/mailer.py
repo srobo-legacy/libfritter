@@ -60,7 +60,7 @@ class Mailer(object):
         sql_connector : callable
             Returning a sqlite connection
         sender : callable, optional
-            Used to actually send the email. Defaults to send_email.
+            Used to actually send the email. Defaults to `send_email`.
         """
         self._config = config
         self._sql_connector = sql_connector
