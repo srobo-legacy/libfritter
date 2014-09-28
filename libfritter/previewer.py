@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 import string
+import sys
 
 class PreviewFormatter(string.Formatter):
     def __init__(self):
@@ -38,11 +39,15 @@ class Previewer(object):
         for name, value in self.preview_data:
             value = "{}".format(value)
             lines = "\n    ".join(l for l in value.splitlines())
-            writer.write("""# {0}
+            content = """# {0}
 
     {1}
 
-""".format(name, lines))
+""".format(name, lines)
+            if sys.version_info[0] < 3:
+                # Python 2 writers can't deal with unicode characters
+                content = content.encode('utf-8')
+            writer.write(content)
 
     def do_format(self):
         if self._body is None:

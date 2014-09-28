@@ -8,6 +8,10 @@ if sys.version_info[0] < 3:
 else:
     open_ = open
 
+def load_path(path):
+    with open_(path, 'r', encoding='utf-8') as f:
+        return f.read()
+
 class FileTemaplateSource(object):
     "A source of template contents based on .txt files"
 
@@ -18,5 +22,4 @@ class FileTemaplateSource(object):
 
     def load(self, name):
         path = os.path.join(self._root, name + self.extension)
-        with open_(path, 'r', encoding='utf-8') as f:
-            return f.read()
+        return load_path(path)
