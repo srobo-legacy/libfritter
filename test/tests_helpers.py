@@ -62,9 +62,9 @@ def assert_no_emails():
 def template_root():
     return os.path.join(test_root(), 'templates')
 
-def get_mailer(sender = None):
+def get_mailer(sender = None, delay_send = True):
     f = FileTemplateFactory(template_root())
-    mailer = Mailer({}, sqlite_connect, f.load, sender)
+    mailer = Mailer({}, sqlite_connect, f.load, sender, delay_send)
     return mailer
 
 def assert_load_template(name, vars_):

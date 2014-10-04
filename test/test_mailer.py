@@ -23,6 +23,44 @@ class TestMailer(TestCase):
         self._subject = subject
         self._msg = msg
 
+    def test_delay_send_true(self):
+        mailer = test_helpers.get_mailer(self.fake_send_email, delay_send = True)
+        exp_addr = 'test@example.com'
+        exp_tpl  = 'example_template'
+        exp_vars = {'foo':'bar'}
+
+        mailer.email_template(exp_addr, exp_tpl, exp_vars)
+
+        assert self._to is None, "Should not have actually sent the email"
+
+        # Should have stored it
+        stored = last_email()
+        toaddr = stored.toaddr
+        assert exp_addr == toaddr
+        tpl = stored.template_name
+        assert exp_tpl == tpl
+        vars = stored.template_vars
+        assert exp_vars == vars
+
+    def test_delay_send_false(self):
+        mailer = test_helpers.get_mailer(self.fake_send_email, delay_send = False)
+        exp_addr = 'test@example.com'
+        exp_tpl  = 'example_template'
+        exp_vars = {'foo':'bar'}
+
+        mailer.email_template(exp_addr, exp_tpl, exp_vars)
+
+        assert exp_addr == self._to, "Should have actually sent the email"
+
+        # Should also have stored it
+        stored = last_email()
+        toaddr = stored.toaddr
+        assert exp_addr == toaddr
+        tpl = stored.template_name
+        assert exp_tpl == tpl
+        vars = stored.template_vars
+        assert exp_vars == vars
+
     def test_store_temaplate(self):
         exp_addr = 'test@example.com'
         exp_tpl  = 'tpl'
