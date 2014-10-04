@@ -51,7 +51,8 @@ def test_to():
         assert expected == to
 
     yield helper, 'template-1', None
-    yield helper, 'template-2', "students"
+    yield helper, 'template-2', ["students"]
+    yield helper, 'template-3', ["students", "team-leaders"]
 
 def test_invalid():
     def helper(name):

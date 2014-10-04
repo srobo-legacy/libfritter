@@ -1,7 +1,7 @@
 
 from collections import namedtuple
 
-from ..libfritter.previewer import PreviewFormatter, Previewer
+from ..libfritter.previewer import PreviewFormatter, Previewer, UknownRecipient
 
 def test_prev_formatter():
     def helper(tpl, expected_str, expected_keys):
@@ -20,12 +20,12 @@ def test_prev_formatter():
 class FakeTemplate(object):
     def __init__(self):
         self.raw_body = '-{foo}-{bar}-'
-        self.recipient = '-recipient-'
+        self.recipient = None
         self.subject = '-subject-'
 
     def default_expected(self):
         return [
-            ('To', self.recipient),
+            ('To', None),
             ('Subject', self.subject),
             ('Body', '-$FOO-$BAR-'),
             ('Placeholders', 'bar, foo'),
@@ -39,10 +39,15 @@ class FakeLoader(object):
         self.name = name
         return self._tpl
 
+def fake_recipient_describer(to):
+    if to.startswith('known'):
+        return 'all ' + to
+    raise UknownRecipient(to)
+
 def get_previewer_data(fake_template):
     expected_name = 'dummy'
     loader = FakeLoader(fake_template)
-    previewer = Previewer(loader.load, None)
+    previewer = Previewer(loader.load, fake_recipient_describer, None)
     data = previewer.preview_data(expected_name)
     name = loader.name
     assert expected_name == name, "Passed the wrong name to the template factory."
@@ -57,15 +62,42 @@ def test_previewer_data():
 
     assert expected == data, "Wrong placeholder data"
 
-def test_previewer_data_no_to():
-    fake_template = FakeTemplate()
-    fake_template.recipient = None
+def test_previewer_data_recipients():
+    def helper(recipient, expected_to, desc):
+        fake_template = FakeTemplate()
+        fake_template.recipient = recipient
 
-    data = get_previewer_data(fake_template)
+        data = get_previewer_data(fake_template)
 
-    expected = fake_template.default_expected()
+        expected = fake_template.default_expected()
+        expected[0] = ('To', expected_to)
 
-    assert expected == data, "Wrong placeholder data"
+        assert expected == \
+               data, \
+               "Wrong placeholder data for {0}.".format(desc)
+
+    yield helper, None, None, None
+    yield helper, [], None, "empty list"
+    yield helper, ['known-1', 'known-2'], 'all known-1, all known-2', "two known recipients"
+
+def test_previewer_data_bad_recipients():
+    def helper(recipient, expected_to, desc):
+        fake_template = FakeTemplate()
+        fake_template.recipient = recipient
+
+        data = get_previewer_data(fake_template)
+
+        expected = fake_template.default_expected()
+        expected[0] = ('To', expected_to)
+        err = "* {}".format(UknownRecipient('nope'))
+        expected.append( ('Error', err) )
+
+        assert expected == \
+               data, \
+               "Wrong placeholder data for {0}.".format(desc)
+
+    yield helper, ['nope'], None, "unknown recipient"
+    yield helper, ['known', 'nope'], 'all known', "known and unknown recipient"
 
 def test_previewer_data_no_placeholders():
     fake_template = FakeTemplate()
@@ -84,7 +116,7 @@ def test_previewer_data_load_failed():
     def throws(*args):
         raise error
 
-    previewer = Previewer(throws, None)
+    previewer = Previewer(throws, None, None)
     data = previewer.preview_data('fake')
 
     expected = [('Error', error)]
@@ -95,7 +127,7 @@ def test_reuse():
     fake_template = FakeTemplate()
 
     loader = FakeLoader(fake_template)
-    previewer = Previewer(loader.load, None)
+    previewer = Previewer(loader.load, fake_recipient_describer, None)
 
     data = previewer.preview_data('fake')
     expected = fake_template.default_expected()

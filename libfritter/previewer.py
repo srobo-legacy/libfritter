@@ -4,6 +4,17 @@ from __future__ import unicode_literals
 import string
 import sys
 
+class UknownRecipient(Exception):
+    def __init__(self, recipient, detail = None):
+        detail_msg = ''
+        if detail:
+            detail_msg = ": {}".format(detail)
+        super(UknownRecipient, self).__init__(
+            "Unknown recipient '{}'.".format(recipient, detail_msg)
+        )
+        self.recipient = lambda s: recipient
+        self.detail = lambda s: detail
+
 class PreviewFormatter(string.Formatter):
     def __init__(self):
         self.used_keys = set()
@@ -14,17 +25,22 @@ class PreviewFormatter(string.Formatter):
 
 class Previewer(object):
     "A template previewer"
-    def __init__(self, template_factory, writer):
+    def __init__(self, template_factory, recipient_checker, writer):
         """
         Parameters
         ----------
         template_factory : callable(name)
             Will be passed the name of a template, should return an
             ``EmailTemplate`` instance.
+        recipient_checker : callable(recipient)
+            Will be passed a value from the "To:" line of the template,
+            should return a description of the recipient or raise
+            ``UknownRecipient``.
         writer : file object
             Used to output the preview of each item.
         """
         self._template_factory = template_factory
+        self._recipient_checker = recipient_checker
         self._writer = writer
 
     def preview_data(self, template_name):
@@ -39,13 +55,27 @@ class Previewer(object):
         """
         try:
             et = self._template_factory(template_name)
-            body, placeholders = self._get_body(et)
-            return [
-                ('To', et.recipient),
+            recipients, recipient_errors = self._get_recipients(et.recipient)
+            body, placeholders, body_error = self._get_body(et)
+            items = [
+                ('To', recipients),
                 ('Subject', et.subject),
                 ('Body', body),
                 ('Placeholders', placeholders),
             ]
+
+            errors = []
+            if recipient_errors:
+                errors += recipient_errors
+
+            if body_error:
+                errors.append(body_error)
+
+            if errors:
+                error_msg = "\n* ".join("{}".format(e) for e in errors)
+                items.append( ('Error', '* ' + error_msg) )
+
+            return items
         except Exception as e:
             return [('Error', e)]
 
@@ -73,13 +103,34 @@ class Previewer(object):
             self._writer.write(content)
 
     def _get_body(self, email_template):
-        formatter = PreviewFormatter()
-        body = formatter.format(email_template.raw_body)
-        required_keys = formatter.used_keys
+        try:
+            formatter = PreviewFormatter()
+            body = formatter.format(email_template.raw_body)
+            required_keys = formatter.used_keys
+        except Exception as e:
+            return None, None, e
 
         if len(required_keys):
             required_keys = ', '.join(sorted(required_keys))
         else:
             required_keys = None
 
-        return body, required_keys
+        return body, required_keys, None
+
+    def _get_recipients(self, recipient_list):
+        if not recipient_list:
+            return None, None
+
+        descriptions = []
+        errors = []
+        for r in recipient_list:
+            try:
+                desc = self._recipient_checker(r)
+                descriptions.append(desc)
+            except UknownRecipient as e:
+                errors.append(e)
+
+        descriptions_str = None
+        if descriptions:
+            descriptions_str = ', '.join(descriptions)
+        return descriptions_str, errors

@@ -12,5 +12,8 @@ from libfritter.template_source import load_path
 def load(path):
     return EmailTemplate(load_path(path))
 
-p = Previewer(load, sys.stdout)
+def recipient_check(name):
+    return name
+
+p = Previewer(load, recipient_check, sys.stdout)
 p.preview(sys.argv[1])

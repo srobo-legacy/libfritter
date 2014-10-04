@@ -33,7 +33,8 @@ class EmailTemplate(object):
                       "or '{1}', got: '{2}'.".format(to_prefix, subj_prefix, next_line)
                 raise InvalidTemplateException(msg)
 
-            self._tpl_to = next_line[len(to_prefix):].strip()
+            tpl_to = next_line[len(to_prefix):].strip()
+            self._tpl_to = [r.strip() for r in tpl_to.split(',')]
             next_line = lines.pop(0)
 
         if not next_line.startswith(subj_prefix):
