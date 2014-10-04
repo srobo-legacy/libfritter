@@ -1,5 +1,6 @@
 
 from collections import namedtuple
+from io import StringIO
 
 from ..libfritter.previewer import PreviewFormatter, Previewer, UnknownRecipient
 
@@ -122,6 +123,18 @@ def test_previewer_data_load_failed():
     expected = [('Error', error)]
 
     assert expected == data, "Wrong placeholder data"
+
+def test_previewer_returns_errors():
+    error = Exception("I'm a teapot")
+    def throws(*args):
+        raise error
+
+    previewer = Previewer(throws, None, StringIO())
+    actual = previewer.preview('fake')
+
+    expected = [error]
+
+    assert expected == actual, "Wrong value returned from previewer"
 
 def test_reuse():
     fake_template = FakeTemplate()

@@ -87,7 +87,7 @@ class Previewer(object):
         except Exception as e:
             return [('Error', e)]
 
-    def preview(self, template_name):
+    def preview(self, template_name, writer = None):
         """
         Writes a text preview of the template into the given writer.
 
@@ -96,7 +96,19 @@ class Previewer(object):
         template_name : str
             The name of the template to get the preview data for, will be
             passed to the factory callable the instance was created around.
+        writer : file object, optional
+            Used to output the preview of each item in preference to the
+            writer given to the instance when it was created.
+
+        Returns
+        -------
+        str or None
+            The content of the errors section, if any.
         """
+        if not writer:
+            writer = self._writer
+
+        errors_value = None
         for name, value in self.preview_data(template_name):
             value = "{}".format(value)
             lines = "\n    ".join(l for l in value.splitlines())
@@ -108,7 +120,11 @@ class Previewer(object):
             if sys.version_info[0] < 3:
                 # Python 2 writers can't deal with unicode characters
                 content = content.encode('utf-8')
-            self._writer.write(content)
+            writer.write(content)
+            if name == 'Errors':
+                errors_value = "{}".format(value)
+
+        return errors_value
 
     def _get_body(self, email_template):
         try:
