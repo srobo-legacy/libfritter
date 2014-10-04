@@ -29,7 +29,7 @@ class Previewer(object):
 
     def preview_data(self, template_name):
         """
-        Returns the gathered data, as a dictionary of content ready to be output.
+        Returns the gathered data, as a list of content tuples ready to be output.
 
         Parameters
         ----------
