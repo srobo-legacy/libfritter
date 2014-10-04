@@ -1,6 +1,11 @@
 
 from collections import namedtuple
-from io import StringIO
+try:
+    # python 2 -- expects str, not unicode
+    from StringIO import StringIO
+except ImportError:
+    # python 3
+    from io import StringIO
 
 from ..libfritter.previewer import PreviewFormatter, Previewer, UnknownRecipient
 
