@@ -12,8 +12,16 @@ class UnknownRecipient(Exception):
         super(UnknownRecipient, self).__init__(
             "Unknown recipient '{}'.".format(recipient, detail_msg)
         )
-        self.recipient = lambda s: recipient
-        self.detail = lambda s: detail
+        self._recipient = recipient
+        self._detail = detail
+
+    @property
+    def detail(self):
+        return self._detail
+
+    @property
+    def recipient(self):
+        return self._recipient
 
 class PreviewFormatter(string.Formatter):
     def __init__(self):
