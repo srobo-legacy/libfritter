@@ -122,7 +122,7 @@ class Previewer(object):
                 content = content.encode('utf-8')
             writer.write(content)
             if name == 'Error':
-                errors_value = "{}".format(value)
+                errors_value = value
 
         return errors_value
 
