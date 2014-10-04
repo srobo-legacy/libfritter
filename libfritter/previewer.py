@@ -4,12 +4,12 @@ from __future__ import unicode_literals
 import string
 import sys
 
-class UknownRecipient(Exception):
+class UnknownRecipient(Exception):
     def __init__(self, recipient, detail = None):
         detail_msg = ''
         if detail:
             detail_msg = ": {}".format(detail)
-        super(UknownRecipient, self).__init__(
+        super(UnknownRecipient, self).__init__(
             "Unknown recipient '{}'.".format(recipient, detail_msg)
         )
         self.recipient = lambda s: recipient
@@ -35,7 +35,7 @@ class Previewer(object):
         recipient_checker : callable(recipient)
             Will be passed a value from the "To:" line of the template,
             should return a description of the recipient or raise
-            ``UknownRecipient``.
+            ``UnknownRecipient``.
         writer : file object
             Used to output the preview of each item.
         """
@@ -127,7 +127,7 @@ class Previewer(object):
             try:
                 desc = self._recipient_checker(r)
                 descriptions.append(desc)
-            except UknownRecipient as e:
+            except UnknownRecipient as e:
                 errors.append(e)
 
         descriptions_str = None

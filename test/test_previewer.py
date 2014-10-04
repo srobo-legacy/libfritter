@@ -1,7 +1,7 @@
 
 from collections import namedtuple
 
-from ..libfritter.previewer import PreviewFormatter, Previewer, UknownRecipient
+from ..libfritter.previewer import PreviewFormatter, Previewer, UnknownRecipient
 
 def test_prev_formatter():
     def helper(tpl, expected_str, expected_keys):
@@ -42,7 +42,7 @@ class FakeLoader(object):
 def fake_recipient_describer(to):
     if to.startswith('known'):
         return 'all ' + to
-    raise UknownRecipient(to)
+    raise UnknownRecipient(to)
 
 def get_previewer_data(fake_template):
     expected_name = 'dummy'
@@ -89,7 +89,7 @@ def test_previewer_data_bad_recipients():
 
         expected = fake_template.default_expected()
         expected[0] = ('To', expected_to)
-        err = "* {}".format(UknownRecipient('nope'))
+        err = "* {}".format(UnknownRecipient('nope'))
         expected.append( ('Error', err) )
 
         assert expected == \
