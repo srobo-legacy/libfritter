@@ -121,7 +121,7 @@ class Previewer(object):
                 # Python 2 writers can't deal with unicode characters
                 content = content.encode('utf-8')
             writer.write(content)
-            if name == 'Errors':
+            if name == 'Error':
                 errors_value = "{}".format(value)
 
         return errors_value
