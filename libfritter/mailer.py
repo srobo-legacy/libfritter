@@ -49,12 +49,9 @@ class Mailer(object):
         """
         Parameters
         ----------
-        config : dict_like
-            Must have the keys as needed by the ``sender``, plus:
-            * ``template_dir``: str - path to the directory containing the templates
-            * ``delayed_send``: bool - if ``true`` will cache the templated
-                                     email request and send it later, otherwise
-                                     will attempt to send the email immediately
+        config : object
+            Configuration object which will be passed as the first parameter
+            to the ``sender`` callable.
         sql_connector : callable
             Returning a sqlite connection
         template_factory : callable(name)
