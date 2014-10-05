@@ -18,9 +18,9 @@ from ..libfritter.file_template_factory import FileTemplateFactory
 from ..libfritter.mailer import Mailer
 
 def ensure_db(db_path = DB_PATH):
-    from subprocess import check_call
+    from subprocess import check_output
     make_db_script = os.path.join(root(), 'scripts', 'make_db.sh')
-    check_call([make_db_script, db_path])
+    check_output([make_db_script, db_path])
 
 ensure_db()
 
