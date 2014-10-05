@@ -39,7 +39,8 @@ def last_email(db_path = DB_PATH):
     cur.execute("SELECT id FROM outbox")
     row = cur.fetchone()
     assert row is not None, "Failed to get last email from SQLite."
-    return PendingSend(sqlite_connect, row[0])
+    connector = partial(sqlite_connect, db_path)
+    return PendingSend(connector, row[0])
 
 def last_n_emails(num, db_path = DB_PATH):
     conn = sqlite_connect(db_path)
