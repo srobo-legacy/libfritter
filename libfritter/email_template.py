@@ -35,7 +35,10 @@ class EmailTemplate(object):
 
             tpl_to = next_line[len(to_prefix):].strip()
             self._tpl_to = [r.strip() for r in tpl_to.split(',')]
-            next_line = lines.pop(0)
+            try:
+                next_line = lines.pop(0)
+            except:
+                raise InvalidTemplateException("Template is too short")
 
         if not next_line.startswith(subj_prefix):
             msg = "Template must contain a subject within its first two lines."

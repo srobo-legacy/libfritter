@@ -2,7 +2,7 @@
 
 from __future__ import unicode_literals
 
-from ..libfritter.email_template import InvalidTemplateException
+from ..libfritter.email_template import EmailTemplate, InvalidTemplateException
 from ..libfritter.file_template_factory import FileTemplateFactory
 
 from .tests_helpers import assert_template_path, template_root
@@ -54,21 +54,27 @@ def test_to():
     yield helper, 'template-2', ["students"]
     yield helper, 'template-3', ["students", "team-leaders"]
 
+def assert_invalid(et):
+    threw = False
+    try:
+        s = et.subject
+    except InvalidTemplateException:
+        threw = True
+
+    assert threw, "Should have failed to load template '{0}'".format(name)
+
 def test_invalid():
     def helper(name):
         et = load_template(name)
-
-        threw = False
-        try:
-            s = et.subject
-        except InvalidTemplateException:
-            threw = True
-
-        assert threw, "Should have failed to load template '{0}'".format(name)
+        assert_invalid(et)
 
     yield helper, "invalid-1"
     yield helper, "invalid-2"
     yield helper, "invalid-3"
+
+def test_invalid_too_short():
+    et = EmailTemplate("To: jim")
+    assert_invalid(et)
 
 def test_strip_empty_start_end_lines():
     et = load_template('template-3')
