@@ -73,6 +73,8 @@ class Mailer(object):
         self._sender = sender or send_email
         self._delay_send = delay_send
 
+        self._logger = logging.getLogger('libfritter.mailer')
+
     def send_email(self, toaddr, subject, msg):
         return self._sender(self._config, toaddr, subject, msg)
 
@@ -84,14 +86,14 @@ class Mailer(object):
         return subject, msg
 
     def send_email_template(self, toaddr, template_name, template_vars):
-        logging.info("about to send '{0}' to '{1}'.".format(template_name, toaddr))
+        self._logger.info("about to send '{0}' to '{1}'.".format(template_name, toaddr))
 
         subject, msg = self.load_template(template_name, template_vars)
 
         return self.send_email(toaddr, subject, msg)
 
     def store_template(self, toaddr, template_name, template_vars):
-        logging.debug("storing pending email: '{0}' to '{1}'.".format(template_name, toaddr))
+        self._logger.debug("storing pending email: '{0}' to '{1}'.".format(template_name, toaddr))
         ps = sqlitewrapper.PendingSend(self._sql_connector)
         ps.toaddr = toaddr
         ps.template_name = template_name
@@ -103,11 +105,11 @@ class Mailer(object):
         try:
             self.send_email_template(ps.toaddr, ps.template_name, ps.template_vars)
             ps.mark_sent()
-            logging.info("sent '{0}' to '{1}'.".format(ps.template_name, ps.toaddr))
+            self._logger.info("sent '{0}' to '{1}'.".format(ps.template_name, ps.toaddr))
         except:
             ps.retried()
             ps.last_error = traceback.format_exc()
-            logging.exception("while sending {0}.".format(ps))
+            self._logger.exception("while sending {0}.".format(ps))
         finally:
             ps.save()
 
