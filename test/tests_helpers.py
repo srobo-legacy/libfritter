@@ -1,4 +1,5 @@
 
+from functools import partial
 import os
 import sqlite3
 
@@ -23,36 +24,37 @@ def ensure_db(db_path = DB_PATH):
 
 ensure_db()
 
-def sqlite_connect():
-    return sqlite3.connect(DB_PATH)
+def sqlite_connect(db_path = DB_PATH):
+    return sqlite3.connect(db_path)
 
-def delete_db():
-    conn = sqlite_connect()
+def delete_db(db_path = DB_PATH):
+    conn = sqlite_connect(db_path)
     cur = conn.cursor()
     cur.execute("DELETE FROM outbox")
     conn.commit()
 
-def last_email():
-    conn = sqlite_connect()
+def last_email(db_path = DB_PATH):
+    conn = sqlite_connect(db_path)
     cur  = conn.cursor()
     cur.execute("SELECT id FROM outbox")
     row = cur.fetchone()
     assert row is not None, "Failed to get last email from SQLite."
     return PendingSend(sqlite_connect, row[0])
 
-def last_n_emails(num):
-    conn = sqlite_connect()
+def last_n_emails(num, db_path = DB_PATH):
+    conn = sqlite_connect(db_path)
     cur  = conn.cursor()
     cur.execute("SELECT id FROM outbox LIMIT ?", (num,))
     rows = cur.fetchall()
     assert len(rows) == num, "Failed to get last %d emails from SQLite." % (num,)
     mails = []
     for row in rows:
-        mails.append(PendingSend(sqlite_connect, row[0]))
+        connector = partial(sqlite_connect, db_path)
+        mails.append(PendingSend(connector, row[0]))
     return mails
 
-def assert_no_emails():
-    conn = sqlite_connect()
+def assert_no_emails(db_path = DB_PATH):
+    conn = sqlite_connect(db_path)
     cur  = conn.cursor()
     cur.execute("SELECT id FROM outbox")
     row = cur.fetchone()
