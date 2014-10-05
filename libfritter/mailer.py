@@ -115,6 +115,19 @@ class Mailer(object):
             ps.save()
 
     def email_template(self, toaddr, template_name, template_vars):
+        """Prepare a new email based on a template.
+        This is expected to be the main entry point for sending new emails.
+
+        Parameters
+        ----------
+        toaddr : str
+            The email addresss to send the email to.
+        template_name : str
+            The identifier for the template to use. Will be passed to the
+            template_factory this mailer was created with.
+        template_vars : dict
+            A map of values to format the template's body with.
+        """
         # always store the email
         ps = self.store_template(toaddr, template_name, template_vars)
 
