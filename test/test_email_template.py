@@ -8,7 +8,7 @@ from ..libfritter.file_template_factory import FileTemplateFactory
 from .tests_helpers import assert_template_path, template_root
 
 def load_template(name):
-    path = assert_template_path(name)
+    assert_template_path(name)
     root = template_root()
     f = FileTemplateFactory(root)
     et = f.load(name)
@@ -54,10 +54,10 @@ def test_to():
     yield helper, 'template-2', ["students"]
     yield helper, 'template-3', ["students", "team-leaders"]
 
-def assert_invalid(et):
+def assert_invalid(et, name):
     threw = False
     try:
-        s = et.subject
+        print(et.subject)
     except InvalidTemplateException:
         threw = True
 
@@ -66,7 +66,7 @@ def assert_invalid(et):
 def test_invalid():
     def helper(name):
         et = load_template(name)
-        assert_invalid(et)
+        assert_invalid(et, name)
 
     yield helper, "invalid-1"
     yield helper, "invalid-2"
@@ -74,7 +74,7 @@ def test_invalid():
 
 def test_invalid_too_short():
     et = EmailTemplate("To: jim")
-    assert_invalid(et)
+    assert_invalid(et, 'too short')
 
 def test_strip_empty_start_end_lines():
     et = load_template('template-3')

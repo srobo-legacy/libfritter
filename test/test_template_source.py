@@ -7,7 +7,7 @@ from ..libfritter.template_source import FileTemaplateSource
 from .tests_helpers import assert_template_path, template_root
 
 def load_template(name):
-    path = assert_template_path(name)
+    assert_template_path(name)
     root = template_root()
     content = FileTemaplateSource(root).load(name)
     return content

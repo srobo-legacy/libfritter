@@ -1,5 +1,4 @@
 
-from collections import namedtuple
 try:
     # python 2 -- expects str, not unicode
     from StringIO import StringIO

@@ -1,6 +1,6 @@
 
 from datetime import datetime, timedelta
-from nose.tools import raises, with_setup
+from nose.tools import with_setup
 
 from . import tests_helpers as test_helpers
 
