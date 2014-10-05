@@ -32,6 +32,33 @@ class PreviewFormatter(string.Formatter):
         return "$" + key.upper()
 
 class Previewer(object):
+    @staticmethod
+    def format_section(heading, content):
+        """Formats a section with a heading.
+
+        Parameters
+        ----------
+        heading : str
+            The name of the section
+        content : object
+            The content of the section. Each line of content will be
+            indented by four spaces.
+
+        Returns
+        -------
+        str
+            The formatted section. This includes two empty lines at the
+            end so that values are suitable for ``join``ing together with
+            a gap in between.
+        """
+        content_str = "{}".format(content)
+        lines = "\n    ".join(l for l in content_str.splitlines())
+        return """# {0}
+
+    {1}
+
+""".format(heading, lines)
+
     "A template previewer"
     def __init__(self, template_factory, recipient_checker, writer):
         """
@@ -110,19 +137,13 @@ class Previewer(object):
 
         errors_value = None
         for name, value in self.preview_data(template_name):
-            value = "{}".format(value)
-            lines = "\n    ".join(l for l in value.splitlines())
-            content = """# {0}
-
-    {1}
-
-""".format(name, lines)
+            content = self.format_section(name, value)
             if sys.version_info[0] < 3:
                 # Python 2 writers can't deal with unicode characters
                 content = content.encode('utf-8')
             writer.write(content)
             if name == 'Error':
-                errors_value = value
+                errors_value = "{}".format(value)
 
         return errors_value
 

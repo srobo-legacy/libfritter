@@ -1,4 +1,6 @@
 
+from __future__ import unicode_literals
+
 from collections import namedtuple
 try:
     # python 2 -- expects str, not unicode
@@ -157,3 +159,18 @@ def test_reuse():
     expected = fake_template.default_expected()
 
     assert expected == data, "Wrong placeholder data (after changing recipient)"
+
+def test_format_section():
+    prev = Previewer(None, None, None)
+    def helper(heading, content, expected):
+        actual = Previewer.format_section(heading, content)
+        assert expected == \
+               actual, "Wrong content via static"
+
+        actual = prev.format_section(heading, content)
+        assert expected == \
+               actual, "Wrong content via instance"
+
+    yield helper, 'Head', None, "# Head\n\n    None\n\n"
+    yield helper, 'Head', ['a', 'b'], "# Head\n\n    [u'a', u'b']\n\n"
+    yield helper, 'Head', 'a\nb', "# Head\n\n    a\n    b\n\n"
