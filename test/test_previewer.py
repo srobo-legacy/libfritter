@@ -1,6 +1,4 @@
 
-from __future__ import unicode_literals
-
 from collections import namedtuple
 try:
     # python 2 -- expects str, not unicode
@@ -172,5 +170,5 @@ def test_format_section():
                actual, "Wrong content via instance"
 
     yield helper, 'Head', None, "# Head\n\n    None\n\n"
-    yield helper, 'Head', ['a', 'b'], "# Head\n\n    [u'a', u'b']\n\n"
+    yield helper, 'Head', ['a', 'b'], "# Head\n\n    ['a', 'b']\n\n"
     yield helper, 'Head', 'a\nb', "# Head\n\n    a\n    b\n\n"
