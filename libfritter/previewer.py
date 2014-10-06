@@ -59,6 +59,13 @@ class Previewer(object):
 
 """.format(heading, lines)
 
+    @staticmethod
+    def list_or_none(l, template = '{}'):
+        if l:
+            return template.format(', '.join(sorted(l)))
+        else:
+            return None
+
     "A template previewer"
     def __init__(self, template_factory, recipient_checker, writer):
         """
@@ -155,10 +162,7 @@ class Previewer(object):
         except Exception as e:
             return None, None, e
 
-        if len(required_keys):
-            required_keys = ', '.join(sorted(required_keys))
-        else:
-            required_keys = None
+        required_keys = self.list_or_none(required_keys)
 
         return body, required_keys, None
 
