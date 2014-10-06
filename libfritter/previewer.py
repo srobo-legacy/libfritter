@@ -4,6 +4,8 @@ from __future__ import unicode_literals
 import string
 import sys
 
+ERRORS_HEADING = 'Errors'
+
 class UnknownRecipient(Exception):
     def __init__(self, recipient, detail = None):
         detail_msg = ''
@@ -115,11 +117,11 @@ class Previewer(object):
 
             if errors:
                 error_msg = "\n* ".join("{}".format(e) for e in errors)
-                items.append( ('Error', '* ' + error_msg) )
+                items.append( (ERRORS_HEADING, '* ' + error_msg) )
 
             return items
         except Exception as e:
-            return [('Error', e)]
+            return [(ERRORS_HEADING, e)]
 
     def preview(self, template_name, writer = None):
         """
@@ -149,7 +151,7 @@ class Previewer(object):
                 # Python 2 writers can't deal with unicode characters
                 content = content.encode('utf-8')
             writer.write(content)
-            if name == 'Error':
+            if name == ERRORS_HEADING:
                 errors_value = "{}".format(value)
 
         return errors_value

@@ -6,7 +6,8 @@ except ImportError:
     # python 3
     from io import StringIO
 
-from ..libfritter.previewer import PreviewFormatter, Previewer, UnknownRecipient
+from ..libfritter.previewer import ERRORS_HEADING, PreviewFormatter, \
+                                   Previewer, UnknownRecipient
 
 def test_prev_formatter():
     def helper(tpl, expected_str, expected_keys):
@@ -95,7 +96,7 @@ def test_previewer_data_bad_recipients():
         expected = fake_template.default_expected()
         expected[0] = ('To', expected_to)
         err = "* {}".format(UnknownRecipient('nope'))
-        expected.append( ('Error', err) )
+        expected.append( (ERRORS_HEADING, err) )
 
         assert expected == \
                data, \
@@ -124,7 +125,7 @@ def test_previewer_data_load_failed():
     previewer = Previewer(throws, None, None)
     data = previewer.preview_data('fake')
 
-    expected = [('Error', error)]
+    expected = [(ERRORS_HEADING, error)]
 
     assert expected == data, "Wrong placeholder data"
 
