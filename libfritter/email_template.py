@@ -1,7 +1,4 @@
 
-import os
-import sys
-
 class InvalidTemplateException(Exception):
     pass
 
