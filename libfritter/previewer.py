@@ -10,7 +10,7 @@ class UnknownRecipient(Exception):
         if detail:
             detail_msg = ": {}".format(detail)
         super(UnknownRecipient, self).__init__(
-            "Unknown recipient '{}'.".format(recipient, detail_msg)
+            "Unknown recipient '{0}'{1}.".format(recipient, detail_msg)
         )
         self._recipient = recipient
         self._detail = detail
