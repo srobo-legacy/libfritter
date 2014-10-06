@@ -26,12 +26,32 @@ class UnknownRecipient(Exception):
         return self._recipient
 
 class PreviewFormatter(string.Formatter):
-    def __init__(self):
+    def __init__(self, valid_keys = None):
+        """Create a new magic formatter
+
+        Parameters
+        ----------
+        valid_keys : list, optional
+            A list of valid placeholders. If not passed then all placeholders
+            are considered valid.
+        """
+        self._valid_keys = set(valid_keys or [])
         self.used_keys = set()
 
     def get_value(self, key, args, kwargs):
         self.used_keys.add(key)
-        return "$" + key.upper()
+        prefix = '$'
+        if self._valid_keys and key not in self._valid_keys:
+            prefix += "INVALID_"
+        return prefix + key.upper()
+
+    @property
+    def invalid_keys(self):
+        "The set of keys which were invalid."
+        if self._valid_keys:
+            return self.used_keys - self._valid_keys
+        else:
+            return set()
 
 class Previewer(object):
     @staticmethod
@@ -69,7 +89,8 @@ class Previewer(object):
             return None
 
     "A template previewer"
-    def __init__(self, template_factory, recipient_checker, writer):
+    def __init__(self, template_factory, recipient_checker, writer,
+                 valid_placeholders = None):
         """
         Parameters
         ----------
@@ -82,10 +103,14 @@ class Previewer(object):
             ``UnknownRecipient``.
         writer : file object
             Used to output the preview of each item.
+        valid_placeholders : list, optional
+            A list of valid placeholders. If not passed then all placeholders
+            are considered valid.
         """
         self._template_factory = template_factory
         self._recipient_checker = recipient_checker
         self._writer = writer
+        self._valid_placeholders = set(valid_placeholders or [])
 
     def preview_data(self, template_name):
         """
@@ -100,7 +125,16 @@ class Previewer(object):
         try:
             et = self._template_factory(template_name)
             recipients, recipient_errors = self._get_recipients(et.recipient)
-            body, placeholders, body_error = self._get_body(et)
+            body, used_placeholders, body_error = self._get_body(et)
+
+            if self._valid_placeholders:
+                placeholders = [
+                    ('Restricted to', self.list_or_none(self._valid_placeholders)),
+                    ('Used', used_placeholders),
+                ]
+            else:
+                placeholders = used_placeholders
+
             items = [
                 ('To', recipients),
                 ('Subject', et.subject),
@@ -146,7 +180,15 @@ class Previewer(object):
 
         errors_value = None
         for name, value in self.preview_data(template_name):
-            content = self.format_section(name, value)
+            content = value
+            if isinstance(value, list):
+                content = "".join(self.format_section(n, v) for n, v in value)
+                # Strip the final newline since one gets added below as well
+                if content:
+                    assert content[-1] == "\n"
+                    content = content[:-1]
+
+            content = self.format_section(name, content)
             if sys.version_info[0] < 3:
                 # Python 2 writers can't deal with unicode characters
                 content = content.encode('utf-8')
@@ -157,16 +199,16 @@ class Previewer(object):
         return errors_value
 
     def _get_body(self, email_template):
+        formatter = PreviewFormatter(self._valid_placeholders)
         try:
-            formatter = PreviewFormatter()
             body = formatter.format(email_template.raw_body)
-            required_keys = formatter.used_keys
         except Exception as e:
             return None, None, e
 
-        required_keys = self.list_or_none(required_keys)
+        required_keys = self.list_or_none(formatter.used_keys)
+        bad_keys = self.list_or_none(formatter.invalid_keys, "Invalid placeholder(s): {}.")
 
-        return body, required_keys, None
+        return body, required_keys, bad_keys
 
     def _get_recipients(self, recipient_list):
         if not recipient_list:

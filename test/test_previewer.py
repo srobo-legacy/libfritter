@@ -10,8 +10,8 @@ from ..libfritter.previewer import ERRORS_HEADING, PreviewFormatter, \
                                    Previewer, UnknownRecipient
 
 def test_prev_formatter():
-    def helper(tpl, expected_str, expected_keys):
-        pf = PreviewFormatter()
+    def helper(tpl, expected_str, expected_keys, expected_invalid):
+        pf = PreviewFormatter(['bar'])
 
         res = pf.format(tpl)
 
@@ -20,8 +20,32 @@ def test_prev_formatter():
         keys = pf.used_keys
         assert expected_keys == keys
 
+        bad_keys = pf.invalid_keys
+        assert expected_invalid == bad_keys, "Wrong bad keys"
+
+    yield helper, "Foo {bar} ", "Foo $BAR ", set(['bar']), set()
+    yield helper, "Foo {bar} {bar} ", "Foo $BAR $BAR ", set(['bar']), set()
+    yield helper, "Foo {spam} ", "Foo $INVALID_SPAM ", set(['spam']), set(['spam'])
+    yield helper, "Foo {spam} {bar} ", "Foo $INVALID_SPAM $BAR ", set(['bar', 'spam']), set(['spam'])
+
+def test_prev_formatter_all_valid():
+    def helper(tpl, expected_str, expected_keys):
+        pf = PreviewFormatter()
+
+        res = pf.format(tpl)
+
+        assert expected_str == res, "Wrong formatted string"
+
+        keys = pf.used_keys
+        assert expected_keys == keys, "Wrong valid keys"
+
+        bad_keys = pf.invalid_keys
+        assert set() == bad_keys, "Wrong bad keys"
+
     yield helper, "Foo {bar} ", "Foo $BAR ", set(['bar'])
     yield helper, "Foo {bar} {bar} ", "Foo $BAR $BAR ", set(['bar'])
+    yield helper, "Foo {spam} ", "Foo $SPAM ", set(['spam'])
+    yield helper, "Foo {spam} {bar} ", "Foo $SPAM $BAR ", set(['bar', 'spam'])
 
 class FakeTemplate(object):
     def __init__(self):
@@ -50,10 +74,10 @@ def fake_recipient_describer(to):
         return 'all ' + to
     raise UnknownRecipient(to)
 
-def get_previewer_data(fake_template):
+def get_previewer_data(fake_template, valid_placeholders = []):
     expected_name = 'dummy'
     loader = FakeLoader(fake_template)
-    previewer = Previewer(loader.load, fake_recipient_describer, None)
+    previewer = Previewer(loader.load, fake_recipient_describer, None, valid_placeholders)
     data = previewer.preview_data(expected_name)
     name = loader.name
     assert expected_name == name, "Passed the wrong name to the template factory."
@@ -114,6 +138,39 @@ def test_previewer_data_no_placeholders():
     expected = fake_template.default_expected()
     expected[2] = ('Body', fake_template.raw_body)
     expected[3] = ('Placeholders', None)
+
+    assert expected == data, "Wrong placeholder data"
+
+def test_previewer_data_good_placeholders():
+    fake_template = FakeTemplate()
+    fake_template.raw_body = "-body{foo}-"
+
+    valid_placeholders = ['foo', 'bar']
+    data = get_previewer_data(fake_template, valid_placeholders)
+
+    expected = fake_template.default_expected()
+    expected[2] = ('Body', '-body$FOO-')
+    expected[3] = ('Placeholders', [
+        ('Restricted to', 'bar, foo'),
+        ('Used', 'foo'),
+    ])
+
+    assert expected == data, "Wrong placeholder data"
+
+def test_previewer_data_bad_placeholders():
+    fake_template = FakeTemplate()
+    fake_template.raw_body = "-body{foo}-"
+
+    valid_placeholders = ['bar']
+    data = get_previewer_data(fake_template, valid_placeholders)
+
+    expected = fake_template.default_expected()
+    expected[2] = ('Body', '-body$INVALID_FOO-')
+    expected[3] = ('Placeholders', [
+        ('Restricted to', 'bar'),
+        ('Used', 'foo'),
+    ])
+    expected.append( ('Errors', '* Invalid placeholder(s): foo.') )
 
     assert expected == data, "Wrong placeholder data"
 

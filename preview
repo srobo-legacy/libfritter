@@ -2,8 +2,8 @@
 
 import sys
 
-if len(sys.argv) != 2:
-    exit("Usage {0} TEMPLATE_FILE".format(sys.argv[0]))
+if len(sys.argv) < 2:
+    exit("Usage {0} TEMPLATE_FILE [VALID_PLACEHOLDER [VALID_PLACEHOLDER ..]]".format(sys.argv[0]))
 
 from libfritter.email_template import EmailTemplate
 from libfritter.previewer import Previewer
@@ -15,5 +15,5 @@ def load(path):
 def recipient_check(name):
     return name
 
-p = Previewer(load, recipient_check, sys.stdout)
+p = Previewer(load, recipient_check, sys.stdout, sys.argv[2:])
 p.preview(sys.argv[1])
