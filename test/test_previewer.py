@@ -7,7 +7,7 @@ except ImportError:
     from io import StringIO
 
 from ..libfritter.previewer import ERRORS_HEADING, PreviewFormatter, \
-                                   Previewer, MissingRecipient, UnknownRecipient
+                                   Previewer, MissingRecipient, BadRecipient
 
 def test_prev_formatter():
     def helper(tpl, expected_str, expected_keys, expected_invalid):
@@ -61,6 +61,10 @@ class FakeTemplate(object):
             ('Placeholders', 'bar, foo'),
         ]
 
+class FakeBadRecipient(BadRecipient):
+    def __init__(self, recipient, msg_tpl = "Bad recipient '{0}'."):
+        super(FakeBadRecipient, self).__init__(recipient, msg_tpl)
+
 class FakeLoader(object):
     def __init__(self, tpl):
         self.name = None
@@ -75,7 +79,7 @@ class FakeRecipientChecker(object):
     def describe(self, to):
         if to.startswith('known'):
             return 'all ' + to
-        raise UnknownRecipient(to)
+        raise FakeBadRecipient(to)
 
 def get_previewer_data(fake_template, valid_placeholders = [], recipient_checker = None):
     expected_name = 'dummy'
@@ -123,7 +127,7 @@ def test_previewer_data_bad_recipients():
 
         expected = fake_template.default_expected()
         expected[0] = ('To', expected_to)
-        err = "* {}".format(UnknownRecipient('nope'))
+        err = "* {}".format(FakeBadRecipient('nope'))
         expected.append( (ERRORS_HEADING, err) )
 
         assert expected == \

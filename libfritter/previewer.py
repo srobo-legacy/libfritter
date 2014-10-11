@@ -15,20 +15,26 @@ class MissingRecipient(Exception):
             "No recipients specified, but are required.{0}".format(detail_msg)
         )
 
-class UnknownRecipient(Exception):
-    def __init__(self, recipient, detail = None):
-        detail_msg = ''
-        if detail:
-            detail_msg = ": {}".format(detail)
-        super(UnknownRecipient, self).__init__(
-            "Unknown recipient '{0}'{1}.".format(recipient, detail_msg)
-        )
-        self._recipient = recipient
-        self._detail = detail
+class BadRecipient(Exception):
+    """Base exception for issues with recipients. ``RecipientChecker``
+    implementations can either use this directly or subclass it to provide
+    more information.
+    """
+    def __init__(self, recipient, msg_tpl):
+        """Create a new instance.
 
-    @property
-    def detail(self):
-        return self._detail
+        Parameters
+        ----------
+        recipient : str
+            The recipient which is bad in some manner. Will be made available
+            via the property of the same name.
+        msg_tpl : str
+            A format string for the message of the exception. Will have
+            the recioient value formatted into it, and the result passed
+            to the super constructor.
+        """
+        super(BadRecipient, self).__init__(msg_tpl.format(recipient))
+        self._recipient = recipient
 
     @property
     def recipient(self):
@@ -74,7 +80,7 @@ class RecipientChecker(object):
     def describe(self, recipient):
         """Will be passed in turn each of the values from the "To:" line
         of the template, should return a description of the recipient or
-        raise ``UnknownRecipient``.
+        raise ``BadRecipient``.
 
         Parameters
         ----------
@@ -260,7 +266,7 @@ class Previewer(object):
             try:
                 desc = self._recipient_checker.describe(r)
                 descriptions.append(desc)
-            except UnknownRecipient as e:
+            except BadRecipient as e:
                 errors.append(e)
 
         descriptions_str = None
