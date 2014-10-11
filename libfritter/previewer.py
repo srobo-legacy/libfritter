@@ -90,7 +90,7 @@ class Previewer(object):
 
     "A template previewer"
     def __init__(self, template_factory, recipient_checker, writer,
-                 valid_placeholders = None):
+                 valid_placeholders = None, require_recipients = False):
         """
         Parameters
         ----------
@@ -106,11 +106,14 @@ class Previewer(object):
         valid_placeholders : list, optional
             A list of valid placeholders. If not passed then all placeholders
             are considered valid.
+        require_recipients : bool
+            Whether or not some recipients are required.
         """
         self._template_factory = template_factory
         self._recipient_checker = recipient_checker
         self._writer = writer
         self._valid_placeholders = set(valid_placeholders or [])
+        self._require_recipients = require_recipients
 
     def preview_data(self, template_name):
         """
@@ -212,7 +215,10 @@ class Previewer(object):
 
     def _get_recipients(self, recipient_list):
         if not recipient_list:
-            return None, None
+            if self._require_recipients:
+                return None, ['No recipients specified, but are required']
+            else:
+                return None, None
 
         descriptions = []
         errors = []

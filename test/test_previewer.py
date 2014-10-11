@@ -74,10 +74,10 @@ def fake_recipient_describer(to):
         return 'all ' + to
     raise UnknownRecipient(to)
 
-def get_previewer_data(fake_template, valid_placeholders = []):
+def get_previewer_data(fake_template, valid_placeholders = [], require_recipeints = False):
     expected_name = 'dummy'
     loader = FakeLoader(fake_template)
-    previewer = Previewer(loader.load, fake_recipient_describer, None, valid_placeholders)
+    previewer = Previewer(loader.load, fake_recipient_describer, None, valid_placeholders, require_recipeints)
     data = previewer.preview_data(expected_name)
     name = loader.name
     assert expected_name == name, "Passed the wrong name to the template factory."
@@ -173,6 +173,15 @@ def test_previewer_data_bad_placeholders():
     expected.append( (ERRORS_HEADING, '* Invalid placeholder(s): foo.') )
 
     assert expected == data, "Wrong placeholder data"
+
+def test_require_recipeints():
+    fake_template = FakeTemplate()
+    fake_template.raw_body = "-body{foo}-"
+
+    data = get_previewer_data(fake_template, require_recipeints = True)
+    title, value = data[4]
+    assert ERRORS_HEADING == title
+    assert "No recipients specified, but are required" in value
 
 def test_previewer_data_load_failed():
     error = Exception("I'm a teapot")
