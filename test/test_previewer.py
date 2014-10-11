@@ -170,7 +170,7 @@ def test_previewer_data_bad_placeholders():
         ('Restricted to', 'bar'),
         ('Used', 'foo'),
     ])
-    expected.append( ('Errors', '* Invalid placeholder(s): foo.') )
+    expected.append( (ERRORS_HEADING, '* Invalid placeholder(s): foo.') )
 
     assert expected == data, "Wrong placeholder data"
 
