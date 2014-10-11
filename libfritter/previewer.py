@@ -6,6 +6,15 @@ import sys
 
 ERRORS_HEADING = 'Errors'
 
+class MissingRecipient(Exception):
+    def __init__(self, comment = None):
+        detail_msg = ''
+        if comment:
+            detail_msg = " {}".format(comment)
+        super(MissingRecipient, self).__init__(
+            "No recipients specified, but are required.{0}".format(detail_msg)
+        )
+
 class UnknownRecipient(Exception):
     def __init__(self, recipient, detail = None):
         detail_msg = ''
@@ -53,6 +62,34 @@ class PreviewFormatter(string.Formatter):
         else:
             return set()
 
+class RecipientChecker(object):
+    def no_recipient(self):
+        """Called when there are no recipients. If this is valid, then
+        the method need not do anything. If this is not valid, then it
+        should raise ``MissingRecipient`` ideally with some comment about
+        would be valid.
+        """
+        pass
+
+    def describe(self, recipient):
+        """Will be passed in turn each of the values from the "To:" line
+        of the template, should return a description of the recipient or
+        raise ``UnknownRecipient``.
+
+        Parameters
+        ----------
+        recipient : str
+            One of the values from the "To:" line of the template.
+
+        Returns
+        -------
+        str
+            A description of the recipient. The value returned will be
+            shown in the preview, even if it is empty. Thus, if there is
+            no description available this should just return the input value.
+        """
+        return recipient
+
 class Previewer(object):
     @staticmethod
     def format_section(heading, content):
@@ -90,30 +127,26 @@ class Previewer(object):
 
     "A template previewer"
     def __init__(self, template_factory, recipient_checker, writer,
-                 valid_placeholders = None, require_recipients = False):
+                 valid_placeholders = None):
         """
         Parameters
         ----------
         template_factory : callable(name)
             Will be passed the name of a template, should return an
             ``EmailTemplate`` instance.
-        recipient_checker : callable(recipient)
-            Will be passed a value from the "To:" line of the template,
-            should return a description of the recipient or raise
-            ``UnknownRecipient``.
+        recipient_checker : RecipientChecker
+            Object to provide information about the recipients. See the
+            doc-comments on that class for details.
         writer : file object
             Used to output the preview of each item.
         valid_placeholders : list, optional
             A list of valid placeholders. If not passed then all placeholders
             are considered valid.
-        require_recipients : bool
-            Whether or not some recipients are required.
         """
         self._template_factory = template_factory
         self._recipient_checker = recipient_checker
         self._writer = writer
         self._valid_placeholders = set(valid_placeholders or [])
-        self._require_recipients = require_recipients
 
     def preview_data(self, template_name):
         """
@@ -215,16 +248,17 @@ class Previewer(object):
 
     def _get_recipients(self, recipient_list):
         if not recipient_list:
-            if self._require_recipients:
-                return None, ['No recipients specified, but are required']
-            else:
+            try:
+                self._recipient_checker.no_recipient()
                 return None, None
+            except MissingRecipient as mr:
+                return None, [mr]
 
         descriptions = []
         errors = []
         for r in recipient_list:
             try:
-                desc = self._recipient_checker(r)
+                desc = self._recipient_checker.describe(r)
                 descriptions.append(desc)
             except UnknownRecipient as e:
                 errors.append(e)

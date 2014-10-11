@@ -7,7 +7,7 @@ except ImportError:
     from io import StringIO
 
 from ..libfritter.previewer import ERRORS_HEADING, PreviewFormatter, \
-                                   Previewer, UnknownRecipient
+                                   Previewer, MissingRecipient, UnknownRecipient
 
 def test_prev_formatter():
     def helper(tpl, expected_str, expected_keys, expected_invalid):
@@ -69,15 +69,19 @@ class FakeLoader(object):
         self.name = name
         return self._tpl
 
-def fake_recipient_describer(to):
-    if to.startswith('known'):
-        return 'all ' + to
-    raise UnknownRecipient(to)
+class FakeRecipientChecker(object):
+    def no_recipient(self):
+        pass
+    def describe(self, to):
+        if to.startswith('known'):
+            return 'all ' + to
+        raise UnknownRecipient(to)
 
-def get_previewer_data(fake_template, valid_placeholders = [], require_recipeints = False):
+def get_previewer_data(fake_template, valid_placeholders = [], recipient_checker = None):
     expected_name = 'dummy'
     loader = FakeLoader(fake_template)
-    previewer = Previewer(loader.load, fake_recipient_describer, None, valid_placeholders, require_recipeints)
+    recipient_checker = recipient_checker or FakeRecipientChecker()
+    previewer = Previewer(loader.load, recipient_checker, None, valid_placeholders)
     data = previewer.preview_data(expected_name)
     name = loader.name
     assert expected_name == name, "Passed the wrong name to the template factory."
@@ -176,9 +180,19 @@ def test_previewer_data_bad_placeholders():
 
 def test_require_recipeints():
     fake_template = FakeTemplate()
-    fake_template.raw_body = "-body{foo}-"
 
-    data = get_previewer_data(fake_template, require_recipeints = True)
+    class MyRecipientChecker(object):
+        def no_recipient(self):
+            raise MissingRecipient()
+        def describe(self, to):
+            pass
+
+    loader = FakeLoader(fake_template)
+    recipient_checker = MyRecipientChecker()
+    previewer = Previewer(loader.load, recipient_checker, None)
+
+    data = previewer.preview_data('fake')
+
     title, value = data[4]
     assert ERRORS_HEADING == title
     assert "No recipients specified, but are required" in value
@@ -210,7 +224,8 @@ def test_reuse():
     fake_template = FakeTemplate()
 
     loader = FakeLoader(fake_template)
-    previewer = Previewer(loader.load, fake_recipient_describer, None)
+    recipient_checker = FakeRecipientChecker()
+    previewer = Previewer(loader.load, recipient_checker, None)
 
     data = previewer.preview_data('fake')
     expected = fake_template.default_expected()
