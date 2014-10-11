@@ -6,7 +6,8 @@ if len(sys.argv) < 2:
     exit("Usage {0} TEMPLATE_FILE [VALID_PLACEHOLDER [VALID_PLACEHOLDER ..]]".format(sys.argv[0]))
 
 from libfritter.email_template import EmailTemplate
-from libfritter.previewer import Previewer, RecipientChecker
+from libfritter.previewer import Previewer
+from libfritter.recipient_checker import RecipientChecker
 from libfritter.template_source import load_path
 
 def load(path):
