@@ -2,8 +2,13 @@
 
 [![Build Status](https://travis-ci.org/PeterJCLaw/libfritter.svg)](https://travis-ci.org/PeterJCLaw/libfritter)
 
-A collection of email sending related utilities in python.
+Libfritter contains the core email sending components of [Student Robotics'](https://www.studentrobotics.org)
+user management and user mailing software. In both cases it operates on
+email templates stored as plaintext files.
 
+It is not generally useful on its own, other than the `preview` script
+which allows individual templates to be previewed, optionally restricting
+the preview to use a collection of valid placeholders.
 
 ## About
 
