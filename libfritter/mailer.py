@@ -120,13 +120,18 @@ class Mailer(object):
         Parameters
         ----------
         toaddr : str
-            The email addresss to send the email to.
+            The email addresss to send the email to. If empty this will
+            raise ``ValueError``.
         template_name : str
             The identifier for the template to use. Will be passed to the
             template_factory this mailer was created with.
         template_vars : dict
             A map of values to format the template's body with.
         """
+        if not toaddr:
+            self._logger.error("Rejecting request to send template '{0}' to empty address '{1}'.".format(template_name, toaddr))
+            raise ValueError("Cannot send email without a valid toaddr (got '{0}')".format(toaddr))
+
         # always store the email
         ps = self.store_template(toaddr, template_name, template_vars)
 

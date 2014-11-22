@@ -2,7 +2,7 @@
 from unittest import TestCase
 
 from . import tests_helpers as test_helpers
-from .tests_helpers import last_email
+from .tests_helpers import last_email, assert_no_emails
 
 from ..libfritter.sqlitewrapper import PendingSend
 
@@ -20,6 +20,23 @@ class TestMailer(TestCase):
         self._to = to
         self._subject = subject
         self._msg = msg
+
+    def test_empty_toaddr(self):
+        mailer = test_helpers.get_mailer(self.fake_send_email, delay_send = True)
+        exp_addr = ''
+        exp_tpl  = 'example_template'
+        exp_vars = {'foo':'bar'}
+
+        threw = False
+        try:
+            mailer.email_template(exp_addr, exp_tpl, exp_vars)
+        except ValueError:
+            threw = True
+
+        assert threw, "Should have errored about the empty toaddr"
+
+        # Should not have stored it
+        assert_no_emails()
 
     def test_delay_send_true(self):
         mailer = test_helpers.get_mailer(self.fake_send_email, delay_send = True)
