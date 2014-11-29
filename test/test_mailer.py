@@ -142,3 +142,24 @@ class TestMailer(TestCase):
         assert exc_msg in last_error
         retries = ps_stored.retry_count
         assert 1 == retries
+
+    def test_try_send_save_throws(self):
+        exp_addr = 'test@example.com'
+        exp_tpl  = 'example_template'
+        exp_vars = {'foo':'bar'}
+
+        ps = PendingSend(test_helpers.sqlite_connect)
+        ps.toaddr = exp_addr
+        ps.template_name = exp_tpl
+        ps.template_vars = exp_vars
+
+        exc_msg = "I am a teapot"
+        def throws():
+            raise Exception(exc_msg)
+
+        ps.save = throws
+
+        mailer = test_helpers.get_mailer(self.fake_send_email)
+        mailer.try_send(ps)
+
+        # 'assert' that no errors were passed upwards

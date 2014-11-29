@@ -111,7 +111,11 @@ class Mailer(object):
             ps.last_error = traceback.format_exc()
             self._logger.exception("while sending {0}.".format(ps))
         finally:
-            ps.save()
+            try:
+                ps.save()
+            except:
+                # no point trying to record the error as part of the pending send
+                self._logger.exception("while saving {0}.".format(ps))
 
     def email_template(self, toaddr, template_name, template_vars):
         """Prepare a new email based on a template.
