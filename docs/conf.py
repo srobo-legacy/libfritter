@@ -33,6 +33,7 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.todo',
     'sphinx.ext.viewcode',
+    'numpydoc',
 ]
 
 # Include docstrings from __init__ as well as for the class.
