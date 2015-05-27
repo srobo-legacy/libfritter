@@ -3,9 +3,9 @@ class InvalidTemplateException(Exception):
     pass
 
 class EmailTemplate(object):
-    "A class which loads and prepares a template for sending"
+    "A class which prepares a template for sending"
     def __init__(self, template_content):
-        """Create a new template around the given id.
+        """Create a new template around the given raw content.
 
         Parameters
         ----------
