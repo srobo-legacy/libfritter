@@ -1,6 +1,7 @@
 
 from __future__ import unicode_literals
 
+import logging
 import string
 import sys
 
@@ -121,6 +122,7 @@ class Previewer(object):
             A list of valid placeholders. If not passed then all placeholders
             are considered valid.
         """
+        self._logger = logging.getLogger('libfritter.previewer')
         self._template_factory = template_factory
         self._recipient_checker = recipient_checker
         self._writer = writer
@@ -136,6 +138,7 @@ class Previewer(object):
             The name of the template to get the preview data for, will be
             passed to the factory callable the instance was created around.
         """
+        self._logger.debug("Getting preview data for '%s'.", template_name)
         try:
             et = self._template_factory(template_name)
             recipients, recipient_errors = self._get_recipients(et.recipient)
@@ -169,6 +172,7 @@ class Previewer(object):
 
             return items
         except Exception as e:
+            self._logger.exception("Getting preview data for '%s'.", template_name)
             return [(ERRORS_HEADING, e)]
 
     def preview(self, template_name, writer = None):
@@ -217,6 +221,7 @@ class Previewer(object):
         try:
             body = formatter.format(email_template.raw_body)
         except Exception as e:
+            self._logger.exception("Getting body for '%s'.", email_template)
             return None, None, e
 
         required_keys = self.list_or_none(formatter.used_keys)
