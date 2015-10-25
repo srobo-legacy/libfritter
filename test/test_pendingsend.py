@@ -23,6 +23,15 @@ def test_template_vars_property():
     ps.template_vars = {"foo": 'bar'}
     assert ps.template_vars == {'foo': 'bar'}
 
+def test_template_vars_property_unicode():
+    ps = PendingSend(test_helpers.sqlite_connect, 'abc')
+    assert ps.template_vars is None
+
+    e_acute = '\u00e9'
+    bees = 'b{0}{0}s'.format(e_acute)
+    ps.template_vars = {"foo": bees}
+    assert ps.template_vars == {'foo': bees}
+
 def test_retried():
     ps = PendingSend(test_helpers.sqlite_connect, 'abc')
     ps.toaddr = 'jim@srobo.org'
