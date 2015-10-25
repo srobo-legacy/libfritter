@@ -92,6 +92,17 @@ class TestMailer(TestCase):
         vars = stored.template_vars
         assert exp_vars == vars
 
+    def test_load_temaplate_unicode(self):
+        tpl  = 'example_template'
+
+        e_acute = '\u00e9'
+        bees = 'b{0}{0}s'.format(e_acute)
+        template_vars = {"foo": bees}
+
+        subject, msg = self.mailer.load_template(tpl, template_vars)
+
+        assert e_acute in msg
+
     def test_try_send_ok(self):
         exp_addr = 'test@example.com'
         exp_tpl  = 'example_template'
